@@ -1,8 +1,11 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const autopop = require('mongoose-autopopulate');
 const { toJSON, paginate } = require('./plugins');
 const { roles } = require('../config/roles');
+
+const { Schema } = mongoose;
 
 const userSchema = mongoose.Schema(
   {
@@ -44,6 +47,56 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    profile: {
+      address: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      userType: {
+        type: String,
+        enum: ['Bireysel', 'Kurumsal'],
+        default: 'Bireysel',
+      },
+      logoUrl: {
+        type: String,
+      },
+      imageUrl: {
+        type: String,
+      },
+      contactName: {
+        type: String,
+      },
+      ipAllowed: {
+        type: String,
+      },
+      domainAllowed: {
+        type: String,
+      },
+    },
+    packet: {
+      packetId: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'Packets',
+        default: '60c94a46a894b90d39a55054',
+        autopopulate: true,
+      },
+      packetBegin: {
+        type: Date,
+      },
+      packetEnd: {
+        type: Date,
+      },
+      creditLeft: {
+        type: Number,
+      },
+    },
   },
   {
     timestamps: true,
@@ -53,6 +106,7 @@ const userSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 userSchema.plugin(toJSON);
 userSchema.plugin(paginate);
+userSchema.plugin(autopop);
 
 /**
  * Check if email is taken

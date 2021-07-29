@@ -1,2 +1,10 @@
 module.exports.authController = require('./auth.controller');
 module.exports.userController = require('./user.controller');
+module.exports.maddeController = require('./madde.controller');
+module.exports.packetsController = require('./packets.controller');
+module.exports.packetOptionsController = require('./packetoptions.controller');
+module.exports.dictionariesController = require('./dictionaries.controller');
+module.exports.guestController = require('./guest.controller');
+module.exports.guestHistoryController = require('./guesthistory.controller');
+module.exports.userHistoryController = require('./userhistory.controller');
+module.exports.generalSearchController = require('./generalSearch.controller');

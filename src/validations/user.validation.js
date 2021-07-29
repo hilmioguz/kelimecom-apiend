@@ -12,11 +12,9 @@ const createUser = {
 
 const getUsers = {
   query: Joi.object().keys({
-    name: Joi.string(),
-    role: Joi.string(),
-    sortBy: Joi.string(),
-    limit: Joi.number().integer(),
-    page: Joi.number().integer(),
+    query: Joi.string().optional(),
+    sort: Joi.string().optional(),
+    pagination: Joi.string().optional(),
   }),
 };
 

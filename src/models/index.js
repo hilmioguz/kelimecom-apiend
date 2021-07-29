@@ -1,2 +1,9 @@
 module.exports.Token = require('./token.model');
 module.exports.User = require('./user.model');
+module.exports.Userhistory = require('./userhistory.model');
+module.exports.Madde = require('./madde.model');
+module.exports.Packets = require('./packets.model');
+module.exports.Packetoptions = require('./packetoptions.model');
+module.exports.Dictionaries = require('./dictionaries.model');
+module.exports.Guest = require('./guest.model');
+module.exports.Guesthistory = require('./guesthistory.model');

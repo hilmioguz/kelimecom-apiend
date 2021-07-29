@@ -1,0 +1,144 @@
+const mongoose = require('mongoose');
+const autopop = require('mongoose-autopopulate');
+const { toJSON, paginate, aggregatePaginate } = require('./plugins');
+
+const { Schema } = mongoose;
+
+const maddeSchema = mongoose.Schema(
+  {
+    madde: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
+    whichDict: [
+      {
+        anlam: {
+          type: String,
+          required: true,
+        },
+        dictId: {
+          type: Schema.Types.ObjectId,
+          required: true,
+          ref: 'Dictionaries',
+          autopopulate: true,
+        },
+        tur: [
+          {
+            type: String,
+            enum: ['isim', 'fiil', 'sıfat', 'zarf', 'ünlem', 'bağlaç', 'zamir', 'edat', 'mecaz', 'belirtilmemiş'],
+          },
+        ],
+        tip: [
+          {
+            type: String,
+            enum: [
+              'deyim',
+              'olay',
+              'yeradı',
+              'kelime',
+              'atasözü',
+              'kişi',
+              'tamlama',
+              'kalıp',
+              'eser',
+              'cümle',
+              'belirtilmemiş',
+              'yapı',
+              'söz',
+            ],
+          },
+        ],
+        koken: [
+          {
+            type: String,
+          },
+        ],
+        cinsiyet: [
+          {
+            type: String,
+          },
+        ],
+        bicim: [
+          {
+            type: String,
+          },
+        ],
+        sinif: [
+          {
+            type: String,
+          },
+        ],
+        transkripsiyon: [
+          {
+            type: String,
+          },
+        ],
+        fonetik: [
+          {
+            type: String,
+          },
+        ],
+        heceliyazim: [
+          {
+            type: String,
+          },
+        ],
+        zitanlam: [
+          {
+            type: String,
+          },
+        ],
+        esanlam: [
+          {
+            type: String,
+          },
+        ],
+        telaffuz: [
+          {
+            type: String,
+          },
+        ],
+      },
+    ],
+    digerMaddeId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Madde',
+      autopopulate: true,
+    },
+    karsiMaddeId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Madde',
+      autopopulate: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+maddeSchema.index({ madde: 'text' });
+// add plugin that converts mongoose to json
+maddeSchema.plugin(toJSON);
+maddeSchema.plugin(paginate);
+maddeSchema.plugin(aggregatePaginate);
+maddeSchema.plugin(autopop);
+
+/**
+ * Check if madde is already in Db
+ * @param {string} madde - The given madde's text
+ * @param {ObjectId} [excludeMaddeId] - The id of the madde to be excluded
+ * @returns {Promise<boolean>}
+ */
+maddeSchema.statics.isMaddeAlrearyInDB = async function (madde, excludeMaddeId) {
+  const maddem = await this.findOne({ madde, _id: { $ne: excludeMaddeId } });
+  return !!maddem;
+};
+
+/**
+ * @typedef Madde
+ */
+const Madde = mongoose.model('Madde', maddeSchema);
+
+module.exports = Madde;

@@ -2,13 +2,13 @@
   "name": "monster-nodejsapi",
   "version": "1.0.0",
   "main": "src/index.js",
-  "private":"true",
+  "private": "true",
   "engines": {
     "node": ">=12.0.0"
   },
   "scripts": {
     "start": "pm2 start ecosystem.config.json --no-daemon",
-    "dev": "cross-env NODE_ENV=development nodemon src/index.js",
+    "dev": "cross-env NODE_ENV=development DEBUG=* nodemon src/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check **/*.js",
@@ -22,6 +22,7 @@
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "cross-env": "^7.0.0",
+    "date-fns": "^2.22.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-mongo-sanitize": "^2.0.0",
@@ -32,6 +33,7 @@
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.24.0",
     "mongoose": "^5.7.7",
+    "mongoose-autopopulate": "^0.14.0",
     "morgan": "^1.9.1",
     "nodemailer": "^6.3.1",
     "passport": "^0.4.0",

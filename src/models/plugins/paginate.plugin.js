@@ -20,12 +20,16 @@ const paginate = (schema) => {
    * @returns {Promise<QueryResult>}
    */
   schema.statics.paginate = async function (filter, options) {
+    // eslint-disable-next-line no-console
+    console.log('fiter:', filter);
     let sort = '';
+    let orderby = 'asc';
     if (options.sortBy) {
       const sortingCriteria = [];
       options.sortBy.split(',').forEach((sortOption) => {
         const [key, order] = sortOption.split(':');
         sortingCriteria.push((order === 'desc' ? '-' : '') + key);
+        orderby = order;
       });
       sort = sortingCriteria.join(' ');
     } else {
@@ -56,11 +60,15 @@ const paginate = (schema) => {
       const [totalResults, results] = values;
       const totalPages = Math.ceil(totalResults / limit);
       const result = {
-        results,
-        page,
-        limit,
-        totalPages,
-        totalResults,
+        data: results,
+        meta: {
+          page,
+          pages: totalPages,
+          perpage: limit,
+          total: totalResults,
+          sort: orderby,
+          field: sort,
+        },
       };
       return Promise.resolve(result);
     });
