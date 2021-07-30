@@ -2,7 +2,7 @@ version: '3'
 
 services:
   apiend:
-    build: .
+    build: apiend/.
     image: monster-nodejsapi-app
     environment:
       - MONGODB_URL=mongodb://mongodb:27017/monster-nodejsapi
@@ -12,6 +12,21 @@ services:
       - mongodb
     volumes:
       - .:/usr/src/monster-nodejsapi-app
+    networks:
+      - monster-nodejsapi-network
+
+  frontend:
+    build: frontend/.
+    image: monster-nodejsfront-app
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/monster-nodejsapi
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mongodb
+      - apiend
+    volumes:
+      - .:/usr/src/monster-nodejsfront-app
     networks:
       - monster-nodejsapi-network
 
