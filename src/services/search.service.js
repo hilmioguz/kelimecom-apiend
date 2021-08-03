@@ -27,6 +27,8 @@ const queryKelimeler = async (filter, options) => {
 const rawQueryKelimeler = async (options) => {
   const conditionalMatch = {};
   const conditionalMatch2 = {};
+  const conditionalMatch3 = {};
+
   const langOrders = [];
   const defaultLangOrders = ['tr', 'en', 'os', 'ar', 'fa'];
   // eslint-disable-next-line no-console
@@ -41,7 +43,7 @@ const rawQueryKelimeler = async (options) => {
     };
   } else {
     conditionalMatch.madde = {
-      $regex: new RegExp(`^${options.searchTerm}$`, 'i'),
+      $regex: new RegExp(`^${options.searchTerm}`, 'i'),
     };
   }
 
@@ -76,6 +78,11 @@ const rawQueryKelimeler = async (options) => {
     defaultLangOrders.forEach((dil, index) => {
       langOrders.push({ case: { $eq: ['$dict.lang', dil] }, then: index });
     });
+  }
+
+  if (['?'].some((char) => options.searchTerm.includes(char))) {
+    const kelimemiz = options.searchTerm.length - 1;
+    conditionalMatch3['madde-length'] = { $gte: kelimemiz };
   }
 
   const groupCond = {
@@ -157,6 +164,11 @@ const rawQueryKelimeler = async (options) => {
         },
       }
     );
+    if (conditionalMatch3) {
+      condition.push({
+        $match: conditionalMatch3,
+      });
+    }
   } else {
     condition.push({
       $addFields: {
@@ -168,6 +180,11 @@ const rawQueryKelimeler = async (options) => {
         },
       },
     });
+    if (conditionalMatch3) {
+      condition.push({
+        $match: conditionalMatch3,
+      });
+    }
   }
 
   // eslint-disable-next-line no-console
