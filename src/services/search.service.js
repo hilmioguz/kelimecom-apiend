@@ -87,7 +87,7 @@ const rawQueryKelimeler = async (options) => {
 
   const groupCond = {
     $group: {
-      _id: '$dict.code',
+      _id: '$dict.lang',
       madde: {
         $addToSet: '$madde',
       },
@@ -136,7 +136,7 @@ const rawQueryKelimeler = async (options) => {
     },
   ];
 
-  if (options.searchType === 'advanced') {
+  if (options.searchType === 'advanced' || options.searchType === 'ilksorgu') {
     condition.push({
       $addFields: {
         langOrder: {
