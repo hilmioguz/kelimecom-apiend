@@ -11,7 +11,7 @@ router
   .post(auth('searchMadde'), validate(generalSearchValidation.getRawKelimeler), generalSearchController.getRawKelimeler);
 
 router
-  .route('/kelime/:madde/:code?/:tip?')
+  .route('/kelime/:madde/:dil?/:tip?/:sozluk?')
   .get(auth('searchMadde'), validate(generalSearchValidation.getKelimeByMadde), generalSearchController.getKelimeByMadde);
 router
   .route('/arama/:madde')

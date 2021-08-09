@@ -266,9 +266,15 @@ const getKelimeByMadde = async (options) => {
   if (options.searchTip && options.searchTip !== 'tumu' && options.searchTip !== 'undefined') {
     conditionalMatch['whichDict.tip'] = { $in: [options.searchTip] };
   }
-  if (options.searchDict) {
+
+  if (options.searchDil && options.searchDil !== 'tumu' && options.searchDil !== 'undefined') {
+    conditionalMatch['dict.lang'] = { $regex: new RegExp(`${options.searchDil}`, 'ig') };
+  }
+
+  if (options.searchDict && options.searchDict !== 'tumu' && options.searchDict !== 'undefined') {
     conditionalMatch['dict.code'] = { $regex: new RegExp(`${options.searchDict}`, 'ig') };
   }
+
   const agg = Madde.aggregate([
     {
       $match: {
