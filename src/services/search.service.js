@@ -35,6 +35,47 @@ const rawQueryKelimeler = async (options) => {
   console.log('search service-->:', options);
   if (options.searchType === 'exact') {
     conditionalMatch.madde = options.searchTerm;
+  } else if (options.searchType === 'exactwithdash') {
+    conditionalMatch.$or = [
+      {
+        madde: {
+          $regex: new RegExp(`^${options.searchTerm}-`, 'i'),
+        },
+      },
+      {
+        madde: {
+          $regex: new RegExp(`-${options.searchTerm}$`, 'i'),
+        },
+      },
+      {
+        madde: {
+          $regex: new RegExp(` ${options.searchTerm} `, 'i'),
+        },
+      },
+      {
+        madde: {
+          $regex: new RegExp(`^${options.searchTerm} `, 'i'),
+        },
+      },
+      {
+        madde: {
+          $regex: new RegExp(` ${options.searchTerm}$`, 'i'),
+        },
+      },
+      {
+        madde: {
+          $regex: new RegExp(`-${options.searchTerm}-`, 'i'),
+        },
+      },
+    ];
+  } else if (options.searchType === 'maddeanlam') {
+    conditionalMatch.whichDict = {
+      $elemMatch: {
+        anlam: {
+          $regex: new RegExp(` ${options.searchTerm} `, 'i'),
+        },
+      },
+    };
   } else if (options.searchType === 'advanced' && !['?', '*', '[', ']'].some((char) => options.searchTerm.includes(char))) {
     conditionalMatch.madde = options.searchTerm;
   } else if (options.searchType === 'advanced' && ['?', '*', '[', ']'].some((char) => options.searchTerm.includes(char))) {
@@ -109,6 +150,33 @@ const rawQueryKelimeler = async (options) => {
     },
   };
 
+  const groupConditionFourWithHash = {
+    $group: {
+      _id: '$madde',
+      id: {
+        $addToSet: '$_id',
+      },
+      madde: {
+        $addToSet: '$madde',
+      },
+      karsiMaddeId: {
+        $addToSet: '$karsiMaddeId',
+      },
+      digerMaddeId: {
+        $addToSet: '$digerMaddeId',
+      },
+      whichDict: {
+        $addToSet: '$whichDict',
+      },
+      dict: {
+        $addToSet: '$dict',
+      },
+      langOrder: {
+        $addToSet: '$langOrder',
+      },
+    },
+  };
+
   const condition = [
     {
       $match: conditionalMatch,
@@ -136,7 +204,12 @@ const rawQueryKelimeler = async (options) => {
     },
   ];
 
-  if (options.searchType === 'advanced' || options.searchType === 'ilksorgu') {
+  if (
+    options.searchType === 'advanced' ||
+    options.searchType === 'ilksorgu' ||
+    options.searchType === 'exactwithdash' ||
+    options.searchType === 'maddeanlam'
+  ) {
     condition.push({
       $addFields: {
         langOrder: {
@@ -146,7 +219,12 @@ const rawQueryKelimeler = async (options) => {
         },
       },
     });
-    condition.push(groupCond);
+    if (options.searchType === 'exactwithdash' || options.searchType === 'maddeanlam') {
+      condition.push(groupConditionFourWithHash);
+    } else {
+      condition.push(groupCond);
+    }
+
     condition.push(
       {
         $unwind: {
@@ -275,41 +353,87 @@ const getKelimeByMadde = async (options) => {
     conditionalMatch['dict.code'] = { $regex: new RegExp(`${options.searchDict}`, 'ig') };
   }
 
-  const agg = Madde.aggregate([
-    {
-      $match: {
-        madde: options.searchTerm,
+  const aggArray = [];
+
+  if (options.searchType === 'random') {
+    aggArray.push(
+      {
+        $skip: options.skip,
       },
-    },
-    {
-      $unwind: {
-        path: '$whichDict',
+      {
+        $limit: 1,
       },
-    },
-    {
-      $lookup: {
-        from: 'dictionaries',
-        localField: 'whichDict.dictId',
-        foreignField: '_id',
-        as: 'dict',
+      {
+        $unwind: {
+          path: '$whichDict',
+        },
       },
-    },
-    {
-      $unwind: {
-        path: '$dict',
+      {
+        $lookup: {
+          from: 'dictionaries',
+          localField: 'whichDict.dictId',
+          foreignField: '_id',
+          as: 'dict',
+        },
       },
-    },
-    {
-      $match: conditionalMatch,
-    },
-    {
-      $addFields: {
-        'madde-length': { $strLenCP: '$madde' },
+      {
+        $unwind: {
+          path: '$dict',
+        },
       },
-    },
-  ]);
+      {
+        $addFields: {
+          'madde-length': {
+            $strLenCP: '$madde',
+          },
+        },
+      },
+      {
+        $unwind: {
+          path: '$madde',
+        },
+      }
+    );
+  } else {
+    aggArray.push(
+      {
+        $match: {
+          madde: options.searchTerm,
+        },
+      },
+      {
+        $unwind: {
+          path: '$whichDict',
+        },
+      },
+      {
+        $lookup: {
+          from: 'dictionaries',
+          localField: 'whichDict.dictId',
+          foreignField: '_id',
+          as: 'dict',
+        },
+      },
+      {
+        $unwind: {
+          path: '$dict',
+        },
+      },
+      {
+        $match: conditionalMatch,
+      },
+      {
+        $addFields: {
+          'madde-length': { $strLenCP: '$madde' },
+        },
+      }
+    );
+  }
+  const agg = Madde.aggregate(aggArray);
+
   const suboptions = { sort: 'madde-length', limit: options.limit, page: options.page || 1 };
-  const maddeler = await Madde.aggregatePaginate(agg, suboptions, (err, results) => {
+
+  const maddeler = await Madde.aggregatePaginate(agg, options.searchType === 'random' ? '' : suboptions, (err, results) => {
     if (err) {
       // eslint-disable-next-line no-console
       console.err(err);

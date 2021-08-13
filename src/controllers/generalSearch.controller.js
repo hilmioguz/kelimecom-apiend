@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 const httpStatus = require('http-status');
+const fs = require('fs');
 const ApiError = require('../utils/ApiError');
 const prefilter = require('../utils/prefilter');
 const catchAsync = require('../utils/catchAsync');
@@ -52,7 +53,7 @@ const getRawKelimeler = catchAsync(async (req, res) => {
     options.limit = req.body.limit || 10;
     options.page = req.body.page;
   } else {
-    options.limit = req.body.searchType === 'advanced' ? req.body.limit : 7;
+    options.limit = req.body.searchType === 'advanced' || req.body.searchType === 'exactwithdash' ? req.body.limit : 7;
     options.page = req.body.page;
   }
   // eslint-disable-next-line no-console
@@ -101,10 +102,36 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
   res.send(madde);
 });
 
+const getMaddeByRandom = catchAsync(async (req, res) => {
+  const options = {};
+  options.limit = 1;
+  options.searchType = 'random';
+
+  let randomnum = 1;
+  try {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    randomnum = await fs.readFileSync(`${__dirname}/../randomMadde.txt`, 'utf8');
+    console.log(randomnum);
+  } catch (err) {
+    console.error(err);
+  }
+  options.skip = Number(randomnum);
+  // eslint-disable-next-line no-console
+  console.log('options:', options);
+
+  const madde = await searchService.getKelimeByMadde(options);
+
+  if (!madde) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
+  }
+  res.send(madde);
+});
+
 module.exports = {
   creatKelimeler,
   getKelimeler,
   getKelimeByMadde,
+  getMaddeByRandom,
   getRawKelimeler,
   getKelimeById,
 };

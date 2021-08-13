@@ -19,6 +19,11 @@ router
 router
   .route('/kelimedetay/:maddeId')
   .get(auth('searchMadde'), validate(generalSearchValidation.getKelimeById), generalSearchController.getKelimeById);
+
+router
+  .route('/randomone')
+  .get(auth('searchMadde'), validate(generalSearchValidation.getMaddeByRandom), generalSearchController.getMaddeByRandom);
+
 module.exports = router;
 
 /**

@@ -45,10 +45,17 @@ const getKelimeByMadde = {
   }),
 };
 
+const getMaddeByRandom = {
+  params: Joi.object().keys({
+    limit: Joi.string().optional(),
+  }),
+};
+
 module.exports = {
   createKelimeler,
   getKelimeler,
   getKelimeById,
   getRawKelimeler,
   getKelimeByMadde,
+  getMaddeByRandom,
 };
