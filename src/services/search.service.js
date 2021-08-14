@@ -69,12 +69,8 @@ const rawQueryKelimeler = async (options) => {
       },
     ];
   } else if (options.searchType === 'maddeanlam') {
-    conditionalMatch.whichDict = {
-      $elemMatch: {
-        anlam: {
-          $regex: new RegExp(` ${options.searchTerm} `, 'i'),
-        },
-      },
+    conditionalMatch['whichDict.anlam'] = {
+      $regex: new RegExp(` ${options.searchTerm} `, 'i'),
     };
   } else if (options.searchType === 'advanced' && !['?', '*', '[', ']'].some((char) => options.searchTerm.includes(char))) {
     conditionalMatch.madde = options.searchTerm;
@@ -176,40 +172,64 @@ const rawQueryKelimeler = async (options) => {
       },
     },
   };
+  let condition = null;
+  if (options.searchType === 'maddeanlam') {
+    condition = [
+      {
+        $unwind: {
+          path: '$whichDict',
+        },
+      },
+      {
+        $match: conditionalMatch,
+      },
+      {
+        $lookup: {
+          from: 'dictionaries',
+          localField: 'whichDict.dictId',
+          foreignField: '_id',
+          as: 'dict',
+        },
+      },
+      {
+        $unwind: {
+          path: '$dict',
+        },
+      },
+      {
+        $match: conditionalMatch2,
+      },
+    ];
+  } else {
+    condition = [
+      {
+        $match: conditionalMatch,
+      },
+      {
+        $unwind: {
+          path: '$whichDict',
+        },
+      },
+      {
+        $lookup: {
+          from: 'dictionaries',
+          localField: 'whichDict.dictId',
+          foreignField: '_id',
+          as: 'dict',
+        },
+      },
+      {
+        $unwind: {
+          path: '$dict',
+        },
+      },
+      {
+        $match: conditionalMatch2,
+      },
+    ];
+  }
 
-  const condition = [
-    {
-      $match: conditionalMatch,
-    },
-    {
-      $unwind: {
-        path: '$whichDict',
-      },
-    },
-    {
-      $lookup: {
-        from: 'dictionaries',
-        localField: 'whichDict.dictId',
-        foreignField: '_id',
-        as: 'dict',
-      },
-    },
-    {
-      $unwind: {
-        path: '$dict',
-      },
-    },
-    {
-      $match: conditionalMatch2,
-    },
-  ];
-
-  if (
-    options.searchType === 'advanced' ||
-    options.searchType === 'ilksorgu' ||
-    options.searchType === 'exactwithdash' ||
-    options.searchType === 'maddeanlam'
-  ) {
+  if (options.searchType === 'advanced' || options.searchType === 'ilksorgu' || options.searchType === 'exactwithdash') {
     condition.push({
       $addFields: {
         langOrder: {
@@ -219,7 +239,7 @@ const rawQueryKelimeler = async (options) => {
         },
       },
     });
-    if (options.searchType === 'exactwithdash' || options.searchType === 'maddeanlam') {
+    if (options.searchType === 'exactwithdash') {
       condition.push(groupConditionFourWithHash);
     } else {
       condition.push(groupCond);
