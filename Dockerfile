@@ -1,8 +1,8 @@
 FROM node:alpine
 
-RUN mkdir -p /usr/src/monster-nodejsapi-app && chown -R node:node /usr/src/monster-nodejsapi-app
+RUN mkdir -p /usr/src/kelime-apiend && chown -R node:node /usr/src/kelime-apiend
 
-WORKDIR /usr/src/monster-nodejsapi-app
+WORKDIR /usr/src/kelime-apiend
 
 COPY package.json yarn.lock ./
 

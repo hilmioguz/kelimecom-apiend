@@ -34,6 +34,7 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   console.log('aranantext:', aranantext);
   aranantext = aranantext.replace(/\?/g, '.?');
   aranantext = aranantext.replace(/\*/g, '.*');
+  aranantext = aranantext.replace(/٭/g, '.*');
   aranantext = aranantext.replace(/؟/g, '.?');
 
   if (req.body.searchType === 'advanced') {
@@ -41,6 +42,7 @@ const getRawKelimeler = catchAsync(async (req, res) => {
     aranantext = aranantext.replace(/\[/g, '(');
     aranantext = aranantext.replace(/\]/g, ')');
     aranantext = aranantext.replace(/,/g, '|');
+    aranantext = aranantext.replace(/،/g, '|');
   } else {
     aranantext = aranantext.replace(/\[.*\]/g, '');
   }
@@ -49,6 +51,7 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   options.searchTerm = aranantext;
   options.searchType = req.body.searchType;
   options.searchFilter = req.body.searchFilter;
+
   if (req.user) {
     options.limit = req.body.limit || 10;
     options.page = req.body.page;

@@ -1,3 +1,4 @@
+/* eslint-disable security/detect-unsafe-regex */
 /* eslint-disable security/detect-non-literal-regexp */
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
@@ -33,6 +34,7 @@ const rawQueryKelimeler = async (options) => {
   const defaultLangOrders = ['tr', 'en', 'os', 'ar', 'fa'];
   // eslint-disable-next-line no-console
   console.log('search service-->:', options);
+
   if (options.searchType === 'exact') {
     conditionalMatch.madde = options.searchTerm;
   } else if (options.searchType === 'exactwithdash') {
@@ -72,9 +74,15 @@ const rawQueryKelimeler = async (options) => {
     conditionalMatch['whichDict.anlam'] = {
       $regex: new RegExp(` ${options.searchTerm} `, 'i'),
     };
-  } else if (options.searchType === 'advanced' && !['?', '*', '[', ']'].some((char) => options.searchTerm.includes(char))) {
+  } else if (
+    options.searchType === 'advanced' &&
+    !['?', '*', '[', ']', '(', ')'].some((char) => options.searchTerm.includes(char))
+  ) {
     conditionalMatch.madde = options.searchTerm;
-  } else if (options.searchType === 'advanced' && ['?', '*', '[', ']'].some((char) => options.searchTerm.includes(char))) {
+  } else if (
+    options.searchType === 'advanced' &&
+    ['?', '*', '[', ']', '(', ')'].some((char) => options.searchTerm.includes(char))
+  ) {
     conditionalMatch.madde = {
       $regex: new RegExp(`^${options.searchTerm}$`, 'i'),
     };
@@ -116,11 +124,28 @@ const rawQueryKelimeler = async (options) => {
       langOrders.push({ case: { $eq: ['$dict.lang', dil] }, then: index });
     });
   }
+  let kelimeuzunlugu = options.searchTerm.length;
 
-  if (['?'].some((char) => options.searchTerm.includes(char))) {
-    const kelimemiz = options.searchTerm.length - 1;
-    conditionalMatch3['madde-length'] = { $gte: kelimemiz };
+  if (['?', '*'].some((char) => options.searchTerm.includes(char))) {
+    // eslint-disable-next-line no-invalid-regexp
+    const xcount = options.searchTerm.match(/([?*])/g);
+    // eslint-disable-next-line no-console
+    console.log('xcount', xcount, xcount.length);
+    if (xcount) {
+      kelimeuzunlugu -= xcount.length;
+    }
   }
+  if (['(', ')'].some((char) => options.searchTerm.includes(char))) {
+    const orcount = options.searchTerm.match(/(\([\u0020-\u0FFF|]+\))/g);
+    // eslint-disable-next-line no-console
+    console.log('orcount', orcount);
+    if (orcount && orcount[0]) {
+      kelimeuzunlugu -= orcount[0].length - 1;
+    }
+  }
+  // eslint-disable-next-line no-console
+  console.log('kelimeuzunlugu:', kelimeuzunlugu);
+  conditionalMatch3['madde-length'] = { $gte: kelimeuzunlugu };
 
   const groupCond = {
     $group: {
@@ -172,7 +197,9 @@ const rawQueryKelimeler = async (options) => {
       },
     },
   };
+
   let condition = null;
+
   if (options.searchType === 'maddeanlam') {
     condition = [
       {
@@ -284,11 +311,11 @@ const rawQueryKelimeler = async (options) => {
       });
     }
   }
-
+  // condition.push({ allowDiskUse: true });
   // eslint-disable-next-line no-console
-  console.log('condition:', JSON.stringify(condition));
+  console.log('final condition:', JSON.stringify(condition));
 
-  const agg = Madde.aggregate(condition);
+  const agg = Madde.aggregate(condition).allowDiskUse(true);
 
   const suboptions = {
     sort: { 'madde-length': 1, langOrder: 1 },
@@ -297,10 +324,11 @@ const rawQueryKelimeler = async (options) => {
   };
 
   // eslint-disable-next-line no-console
-  console.log('suboptions:', suboptions);
+  console.log('-> suboptions:', suboptions);
   const maddeler = await Madde.aggregatePaginate(agg, suboptions, (err, results) => {
     if (err) {
       // eslint-disable-next-line no-console
+      console.log('ERROR_____>:', err);
       return err;
     }
     return results;
