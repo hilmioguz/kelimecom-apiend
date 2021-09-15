@@ -2,8 +2,13 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
 const autopop = require('mongoose-autopopulate');
+const { storeIP, inRange, isV4 } = require('range_check');
 const { toJSON, paginate } = require('./plugins');
 const { roles } = require('../config/roles');
+const Kurumlar = require('./kurumlar.model');
+const Packets = require('./packets.model');
+
+const { ObjectId } = mongoose.Types;
 
 const { Schema } = mongoose;
 
@@ -28,11 +33,13 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required() {
+        return !this.googleId;
+      },
       trim: true,
       minlength: 8,
       validate(value) {
-        if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
+        if (value && (!value.match(/\d/) || !value.match(/[a-zA-Z]/))) {
           throw new Error('Password must contain at least one letter and one number');
         }
       },
@@ -51,51 +58,32 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    profile: {
-      address: {
-        type: String,
-      },
-      phone: {
-        type: String,
-      },
-      userType: {
-        type: String,
-        enum: ['Bireysel', 'Kurumsal'],
-        default: 'Bireysel',
-      },
-      logoUrl: {
-        type: String,
-      },
-      imageUrl: {
-        type: String,
-      },
-      contactName: {
-        type: String,
-      },
-      ipAllowed: {
-        type: String,
-      },
-      domainAllowed: {
-        type: String,
-      },
+    googleId: {
+      type: String,
+      default: null,
     },
-    packet: {
-      packetId: {
-        type: Schema.Types.ObjectId,
-        required: true,
-        ref: 'Packets',
-        default: '60c94a46a894b90d39a55054',
-        autopopulate: true,
+    picture: {
+      type: String,
+      default: null,
+    },
+    packetId: {
+      type: Schema.Types.ObjectId,
+      required() {
+        return !this.googleId;
       },
-      packetBegin: {
-        type: Date,
-      },
-      packetEnd: {
-        type: Date,
-      },
-      creditLeft: {
-        type: Number,
-      },
+      ref: 'Packets',
+      default: ObjectId('613bd72f5aefc0ac9395ffe0'), // standard paket id in db
+      autopopulate: true,
+    },
+    customPacketId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Custompackets',
+      default: null,
+      autopopulate: true,
+    },
+    clientIp: {
+      type: String,
+      default: null,
     },
   },
   {
@@ -120,6 +108,26 @@ userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
 };
 
 /**
+ * Check if already signin
+ * @param {string} googleId - The user's google id
+ * @returns {Promise<boolean>}
+ */
+userSchema.statics.isAlreadyGoogleSigned = async function (googleId) {
+  const user = await this.findOne({ googleId });
+  return !!user;
+};
+
+/**
+ * Get google user
+ * @param {string} googleId - The user's google id
+ * @returns {Promise<boolean>}
+ */
+userSchema.statics.getGoogleUser = async function (googleId) {
+  const user = await this.findOne({ googleId });
+  return user;
+};
+
+/**
  * Check if password matches the user's password
  * @param {string} password
  * @returns {Promise<boolean>}
@@ -131,8 +139,45 @@ userSchema.methods.isPasswordMatch = async function (password) {
 
 userSchema.pre('save', async function (next) {
   const user = this;
+  if (this.isNew) {
+    this.createAt = Date.now();
+    this.updateAt = Date.now();
+  } else {
+    this.updateAt = Date.now();
+  }
+  // eslint-disable-next-line no-console
+  // console.log('USER:', user);
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 8);
+  }
+  if (this.isNew) {
+    const userdomain = user.email.substring(user.email.lastIndexOf('@') + 1);
+    try {
+      const kurumlar = await Kurumlar.find({});
+      const kurumsalpaket = await Packets.find({ role: 'kurumsal' });
+      const standartpaket = await Packets.find({ role: 'standart' });
+      const emailMatch = kurumlar.filter((kurum) => kurum.mail_suffix === userdomain);
+      // eslint-disable-next-line no-console
+      // console.log('emailMatch:', emailMatch);
+      if (emailMatch && emailMatch.length) {
+        user.packetId = ObjectId(kurumsalpaket[0]._id);
+      } else if (user.clientIp) {
+        const ip = storeIP(user.clientIp);
+        if (isV4(ip)) {
+          const ipMatch = kurumlar.filter((kurum) => inRange(ip, kurum.cidr));
+          // eslint-disable-next-line no-console
+          console.log('imatch:', ipMatch);
+          if (ipMatch && ipMatch.length) {
+            user.packetId = ObjectId(kurumsalpaket[0]._id);
+          }
+        }
+      } else {
+        user.packetId = ObjectId(standartpaket[0]._id);
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log('error:------------------------>', error);
+    }
   }
   next();
 });

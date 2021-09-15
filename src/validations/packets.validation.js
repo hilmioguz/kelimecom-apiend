@@ -11,7 +11,6 @@ const createPacket = {
 const getPackets = {
   query: Joi.object().keys({
     name: Joi.string(),
-    isActive: Joi.boolean(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
     page: Joi.number().integer(),

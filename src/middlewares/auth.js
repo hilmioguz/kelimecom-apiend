@@ -4,7 +4,7 @@ const ApiError = require('../utils/ApiError');
 const { roleRights } = require('../config/roles');
 
 const verifyCallback = (req, resolve, reject, requiredRights) => async (err, user, info) => {
-  if (requiredRights[0] === 'searchMadde') {
+  if (requiredRights[0] === 'freeZone') {
     resolve();
   }
   if (err || info || !user) {

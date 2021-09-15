@@ -14,7 +14,19 @@ const { tokenTypes } = require('../config/tokens');
 const loginUserWithEmailAndPassword = async (email, password) => {
   const user = await userService.getUserByEmail(email);
   if (!user || !(await user.isPasswordMatch(password))) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Yanlış eposta adresi veya şifre');
+  }
+  return user;
+};
+/**
+ * Login with OAuth2 Google
+ * @param {string} googleId
+ * @returns {Promise<User>}
+ */
+const loginGoogle = async (googleId) => {
+  const user = await userService.getUserByGoogleId(googleId);
+  if (!user) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Yanlış google kimliği veya önce oturum açmanız gerekiyor!');
   }
   return user;
 };
@@ -47,7 +59,7 @@ const refreshAuth = async (refreshToken) => {
     await refreshTokenDoc.remove();
     return tokenService.generateAuthTokens(user);
   } catch (error) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Lütfen kimlik doğrulaması yapın');
   }
 };
 
@@ -60,6 +72,8 @@ const refreshAuth = async (refreshToken) => {
 const resetPassword = async (resetPasswordToken, newPassword) => {
   try {
     const resetPasswordTokenDoc = await tokenService.verifyToken(resetPasswordToken, tokenTypes.RESET_PASSWORD);
+    // eslint-disable-next-line no-console
+    console.log('resetPasswordTokenDoc:', resetPasswordTokenDoc);
     const user = await userService.getUserById(resetPasswordTokenDoc.user);
     if (!user) {
       throw new Error();
@@ -67,7 +81,7 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
     await userService.updateUserById(user.id, { password: newPassword });
     await Token.deleteMany({ user: user.id, type: tokenTypes.RESET_PASSWORD });
   } catch (error) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Password reset failed');
+    throw new ApiError(httpStatus.UNAUTHORIZED, `Şifre sıfırlama başarısız oldu: ${error.message}`);
   }
 };
 /**
@@ -79,17 +93,19 @@ const verifyEmail = async (verifyEmailToken) => {
   try {
     const verifyEmailTokenDoc = await tokenService.verifyToken(verifyEmailToken, tokenTypes.VERIFY_EMAIL);
     const user = await userService.getUserById(verifyEmailTokenDoc.user);
+    // eslint-disable-next-line no-console
     if (!user) {
       throw new Error();
     }
     await Token.deleteMany({ user: user.id, type: tokenTypes.VERIFY_EMAIL });
     await userService.updateUserById(user.id, { isEmailVerified: true });
   } catch (error) {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Email verification failed');
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'E-posta doğrulaması başarısız oldu');
   }
 };
 module.exports = {
   loginUserWithEmailAndPassword,
+  loginGoogle,
   logout,
   refreshAuth,
   resetPassword,

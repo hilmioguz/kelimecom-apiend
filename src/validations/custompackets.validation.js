@@ -1,18 +1,14 @@
 const Joi = require('joi');
 const { objectId } = require('./custom.validation');
 
-const createOption = {
+const createCustom = {
   body: Joi.object().keys({
     packetId: Joi.required().custom(objectId),
     name: Joi.string().required(),
-    desc: Joi.string(),
-    limitValue: Joi.number(),
-    isIncluded: Joi.boolean(),
-    isActive: Joi.boolean(),
   }),
 };
 
-const getOptions = {
+const getCustoms = {
   query: Joi.object().keys({
     query: Joi.string().optional(),
     sort: Joi.string().optional(),
@@ -20,25 +16,25 @@ const getOptions = {
   }),
 };
 
-const getOptionById = {
+const getCustomById = {
   params: Joi.object().keys({
-    optionId: Joi.string().custom(objectId),
+    customId: Joi.string().custom(objectId),
   }),
 };
-const getOptionsByPacketId = {
+const getCustomsByPacketId = {
   params: Joi.object().keys({
     packetId: Joi.string().custom(objectId),
   }),
 };
-const getOptionByName = {
+const getCustomByName = {
   params: Joi.object().keys({
     name: Joi.string(),
   }),
 };
 
-const updateOption = {
+const updateCustom = {
   params: Joi.object().keys({
-    optionId: Joi.required().custom(objectId),
+    customId: Joi.required().custom(objectId),
   }),
   body: Joi.object()
     .keys({
@@ -52,18 +48,18 @@ const updateOption = {
     .min(1),
 };
 
-const deleteOption = {
+const deleteCustom = {
   params: Joi.object().keys({
-    optionId: Joi.string().custom(objectId),
+    customId: Joi.string().custom(objectId),
   }),
 };
 
 module.exports = {
-  createOption,
-  getOptions,
-  getOptionById,
-  getOptionsByPacketId,
-  getOptionByName,
-  updateOption,
-  deleteOption,
+  createCustom,
+  getCustoms,
+  getCustomById,
+  getCustomsByPacketId,
+  getCustomByName,
+  updateCustom,
+  deleteCustom,
 };

@@ -6,9 +6,44 @@ const packetsSchema = mongoose.Schema(
     name: {
       type: String,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    role: {
+      type: String,
+    },
+    langLimit: {
+      type: Number,
+    },
+    allowedLangs: {
+      type: Array,
+    },
+    dictLimit: {
+      type: Number,
+    },
+    allowedDicts: {
+      type: Array,
+    },
+    maddebasi: {
+      limitlessCount: {
+        type: Number,
+      },
+      limitLater: {
+        type: Number,
+      },
+    },
+    cekim: {
+      limitlessCount: {
+        type: Number,
+      },
+      limitLater: {
+        type: Number,
+      },
+    },
+    anlam: {
+      limitlessCount: {
+        type: Number,
+      },
+      limitLater: {
+        type: Number,
+      },
     },
   },
   {

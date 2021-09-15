@@ -10,7 +10,7 @@ const createPacket = catchAsync(async (req, res) => {
 });
 
 const getPackets = catchAsync(async (req, res) => {
-  const { filter, options } = prefilter(req, ['name', 'isActive']);
+  const { filter, options } = prefilter(req, ['name']);
   const result = await packetService.queryPackets(filter, options);
   res.send(result);
 });

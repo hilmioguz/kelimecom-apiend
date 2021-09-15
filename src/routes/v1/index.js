@@ -4,7 +4,8 @@ const userRoute = require('./user.route');
 const docsRoute = require('./docs.route');
 const maddeRoute = require('./madde.route');
 const packetRoute = require('./packet.route');
-const packetOptionRoute = require('./packetoption.route');
+const kurumlarRoute = require('./kurumlar.route');
+const customPacketRoute = require('./custompacket.route');
 const dictionaryRoute = require('./dictionary.route');
 const generalSearchRoute = require('./generalSearch.route');
 const config = require('../../config/config');
@@ -29,8 +30,8 @@ const defaultRoutes = [
     route: packetRoute,
   },
   {
-    path: '/packet-option',
-    route: packetOptionRoute,
+    path: '/custom-packet',
+    route: customPacketRoute,
   },
   {
     path: '/dictionary',
@@ -39,6 +40,10 @@ const defaultRoutes = [
   {
     path: '/generalsearch',
     route: generalSearchRoute,
+  },
+  {
+    path: '/kurumlar',
+    route: kurumlarRoute,
   },
 ];
 

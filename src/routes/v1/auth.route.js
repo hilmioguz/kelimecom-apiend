@@ -7,7 +7,9 @@ const auth = require('../../middlewares/auth');
 const router = express.Router();
 
 router.post('/register', validate(authValidation.register), authController.register);
+router.post('/google-register', validate(authValidation.registerGoogle), authController.registerGoogle);
 router.post('/login', validate(authValidation.login), authController.login);
+router.post('/google-login', validate(authValidation.loginGoogle), authController.loginGoogle);
 router.post('/logout', validate(authValidation.logout), authController.logout);
 router.post('/refresh-tokens', validate(authValidation.refreshTokens), authController.refreshTokens);
 router.post('/forgot-password', validate(authValidation.forgotPassword), authController.forgotPassword);

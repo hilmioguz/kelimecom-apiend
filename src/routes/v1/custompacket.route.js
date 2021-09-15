@@ -1,28 +1,28 @@
 const express = require('express');
 const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
-const packetOptionValidation = require('../../validations/packetoptions.validation');
-const packetOptionController = require('../../controllers/packetoptions.controller');
+const customPacketValidation = require('../../validations/custompackets.validation');
+const customPacketController = require('../../controllers/custompackets.controller');
 
 const router = express.Router();
 
 router
   .route('/')
-  .post(auth('managePacketOptions'), validate(packetOptionValidation.createOption), packetOptionController.createOption)
-  .get(auth('getPacketOptions'), validate(packetOptionValidation.getOptions), packetOptionController.getOptions);
+  .post(auth('manageCustomPackets'), validate(customPacketValidation.createCustom), customPacketController.createCustom)
+  .get(auth('getCustomPackets'), validate(customPacketValidation.getCustoms), customPacketController.getCustoms);
 
 router
   .route('/option/:optionId')
-  .get(auth('getPacketOptions'), validate(packetOptionValidation.getOptionById), packetOptionController.getOptionById)
-  .patch(auth('managePacketOptions'), validate(packetOptionValidation.updateOption), packetOptionController.updateOption)
-  .delete(auth('managePacketOptions'), validate(packetOptionValidation.deleteOption), packetOptionController.deleteOption);
+  .get(auth('getCustomPackets'), validate(customPacketValidation.getCustomById), customPacketController.getCustomById)
+  .patch(auth('manageCustomPackets'), validate(customPacketValidation.updateCustom), customPacketController.updateCustom)
+  .delete(auth('manageCustomPackets'), validate(customPacketValidation.deleteCustom), customPacketController.deleteCustom);
 
 router
   .route('/:packetId')
   .get(
-    auth('getPacketOptions'),
-    validate(packetOptionValidation.getOptionsByPacketId),
-    packetOptionController.getOptionsByPacketId
+    auth('getCustomPackets'),
+    validate(customPacketValidation.getCustomsByPacketId),
+    customPacketController.getCustomsByPacketId
   );
 
 module.exports = router;

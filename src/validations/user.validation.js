@@ -3,10 +3,16 @@ const { password, objectId } = require('./custom.validation');
 
 const createUser = {
   body: Joi.object().keys({
+    googleId: Joi.any(),
     email: Joi.string().required().email(),
-    password: Joi.string().required().custom(password),
+    password: Joi.alternatives().conditional('googleId', {
+      is: Joi.exist(),
+      then: Joi.any(),
+      otherwise: Joi.string().required().custom(password),
+    }),
     name: Joi.string().required(),
     role: Joi.string().required().valid('user', 'admin'),
+    clientIp: Joi.string().optional(),
   }),
 };
 

@@ -9,11 +9,11 @@ const router = express.Router();
 router
   .route('/')
   .post(auth('managePacket'), validate(packetValidation.createPacket), packetController.createPacket)
-  .get(auth('getPacket'), validate(packetValidation.getPackets), packetController.getPackets);
+  .get(auth('freeZone'), validate(packetValidation.getPackets), packetController.getPackets);
 
 router
   .route('/:packetId')
-  .get(auth('getPacket'), validate(packetValidation.getPacketById), packetController.getPacketById)
+  .get(auth('freeZone'), validate(packetValidation.getPacketById), packetController.getPacketById)
   .patch(auth('managePacket'), validate(packetValidation.updatePacket), packetController.updatePacket)
   .delete(auth('managePacket'), validate(packetValidation.deletePacket), packetController.deletePacket);
 

@@ -1,25 +1,21 @@
 const express = require('express');
 const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
-const dictionaryValidation = require('../../validations/dictionaries.validation');
-const dictionaryController = require('../../controllers/dictionaries.controller');
+const kurumlarValidation = require('../../validations/kurumlar.validation');
+const kurumlarController = require('../../controllers/kurumlar.controller');
 
 const router = express.Router();
 
 router
   .route('/')
-  .post(auth('manageDictionaries'), validate(dictionaryValidation.createDictionary), dictionaryController.createDictionary)
-  .get(auth('freeZone'), validate(dictionaryValidation.getDictionaries), dictionaryController.getDictionaries);
+  .post(auth('manageKurumlar'), validate(kurumlarValidation.createKurum), kurumlarController.createKurum)
+  .get(auth('freeZone'), validate(kurumlarValidation.getKurumlar), kurumlarController.getKurumlar);
 
 router
-  .route('/:dictId')
-  .get(auth('freeZone'), validate(dictionaryValidation.getDictionaryById), dictionaryController.getDictionaryById)
-  .patch(auth('manageDictionaries'), validate(dictionaryValidation.updateDictionary), dictionaryController.updateDictionary)
-  .delete(
-    auth('manageDictionaries'),
-    validate(dictionaryValidation.deleteDictionary),
-    dictionaryController.deleteDictionary
-  );
+  .route('/:kurumId')
+  .get(auth('freeZone'), validate(kurumlarValidation.getKurumById), kurumlarController.getKurumById)
+  .patch(auth('manageKurumlar'), validate(kurumlarValidation.updateKurum), kurumlarController.updateKurum)
+  .delete(auth('manageKurumlar'), validate(kurumlarValidation.deleteKurum), kurumlarController.deleteKurum);
 
 module.exports = router;
 

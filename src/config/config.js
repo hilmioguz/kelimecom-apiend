@@ -23,6 +23,9 @@ const envVarsSchema = Joi.object()
     SMTP_USERNAME: Joi.string().description('username for email server'),
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
+    CLIENT_ID: Joi.string().description('Google Oauth2 client id'),
+    CLIENT_SECRET: Joi.string().description('Google Oauth2 client secret'),
+    REFRESH_TOKEN: Joi.string().description('Google Oauth2 client  refresh token'),
   })
   .unknown();
 
@@ -50,15 +53,10 @@ module.exports = {
     resetPasswordExpirationMinutes: envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES,
   },
-  email: {
-    smtp: {
-      host: envVars.SMTP_HOST,
-      port: envVars.SMTP_PORT,
-      auth: {
-        user: envVars.SMTP_USERNAME,
-        pass: envVars.SMTP_PASSWORD,
-      },
-    },
-    from: envVars.EMAIL_FROM,
+  oauth: {
+    user: envVars.EMAIL_FROM,
+    clientId: envVars.CLIENT_ID,
+    clientSecret: envVars.CLIENT_SECRET,
+    refreshToken: envVars.REFRESH_TOKEN,
   },
 };

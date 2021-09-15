@@ -33,6 +33,7 @@ const getRawKelimeler = {
 const getKelimeById = {
   params: Joi.object().keys({
     maddeId: Joi.string().custom(objectId),
+    dictId: Joi.string().optional().custom(objectId),
   }),
 };
 

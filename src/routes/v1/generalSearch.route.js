@@ -8,21 +8,21 @@ const router = express.Router();
 
 router
   .route('/')
-  .post(auth('searchMadde'), validate(generalSearchValidation.getRawKelimeler), generalSearchController.getRawKelimeler);
+  .post(auth('freeZone'), validate(generalSearchValidation.getRawKelimeler), generalSearchController.getRawKelimeler);
 
 router
   .route('/kelime/:madde/:dil?/:tip?/:sozluk?')
-  .get(auth('searchMadde'), validate(generalSearchValidation.getKelimeByMadde), generalSearchController.getKelimeByMadde);
+  .get(auth('freeZone'), validate(generalSearchValidation.getKelimeByMadde), generalSearchController.getKelimeByMadde);
 router
   .route('/arama/:madde')
-  .get(auth('searchMadde'), validate(generalSearchValidation.getKelimeler), generalSearchController.getKelimeler);
+  .get(auth('freeZone'), validate(generalSearchValidation.getKelimeler), generalSearchController.getKelimeler);
 router
-  .route('/kelimedetay/:maddeId')
-  .get(auth('searchMadde'), validate(generalSearchValidation.getKelimeById), generalSearchController.getKelimeById);
+  .route('/kelimedetay/:maddeId/:dictId?')
+  .get(auth('freeZone'), validate(generalSearchValidation.getKelimeById), generalSearchController.getKelimeById);
 
 router
   .route('/randomone')
-  .get(auth('searchMadde'), validate(generalSearchValidation.getMaddeByRandom), generalSearchController.getMaddeByRandom);
+  .get(auth('freeZone'), validate(generalSearchValidation.getMaddeByRandom), generalSearchController.getMaddeByRandom);
 
 module.exports = router;
 

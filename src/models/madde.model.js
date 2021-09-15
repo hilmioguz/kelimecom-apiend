@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const autopop = require('mongoose-autopopulate');
+// const slug = require('mongoose-slug-plugin');
+
 const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
 const { Schema } = mongoose;
@@ -17,6 +19,16 @@ const maddeSchema = mongoose.Schema(
         anlam: {
           type: String,
           required: true,
+        },
+        digerMaddeId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Madde',
+          autopopulate: { maxDepth: 1 },
+        },
+        karsiMaddeId: {
+          type: Schema.Types.ObjectId,
+          ref: 'Madde',
+          autopopulate: { maxDepth: 1 },
         },
         dictId: {
           type: Schema.Types.ObjectId,
@@ -102,16 +114,6 @@ const maddeSchema = mongoose.Schema(
         ],
       },
     ],
-    digerMaddeId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Madde',
-      autopopulate: true,
-    },
-    karsiMaddeId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Madde',
-      autopopulate: true,
-    },
   },
   {
     timestamps: true,
@@ -120,6 +122,7 @@ const maddeSchema = mongoose.Schema(
 
 maddeSchema.index({ madde: 'text' });
 // add plugin that converts mongoose to json
+// maddeSchema.plugin(slug, { tmpl: '<%=madde%>' });
 maddeSchema.plugin(toJSON);
 maddeSchema.plugin(paginate);
 maddeSchema.plugin(aggregatePaginate);

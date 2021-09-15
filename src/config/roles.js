@@ -1,16 +1,17 @@
 const allRoles = {
-  guest: ['searchMadde'],
-  user: ['searchMadde', 'getProfile', 'manageProfile'],
-  moderater: ['getMadde', 'manageMadde', 'getDictionaries', 'manageDictionaries'], // TODO: only manage own properties
+  guest: ['freeZone'],
+  user: ['freeZone', 'getProfile', 'manageProfile'],
+  moderater: ['freeZone', 'getMadde', 'manageMadde', 'getDictionaries', 'manageDictionaries'], // TODO: only manage own properties
   admin: [
+    'freeZone',
     'getUsers',
     'manageUsers',
     'getMadde',
     'manageMadde',
     'getPacket',
     'managePacket',
-    'getPacketOptions',
-    'managePacketOptions',
+    'getCustomPackets',
+    'manageCustomPackets',
     'getDictionaries',
     'manageDictionaries',
     'getUserHistory',

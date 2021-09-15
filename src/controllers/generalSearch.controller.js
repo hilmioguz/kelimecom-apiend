@@ -32,10 +32,10 @@ const getRawKelimeler = catchAsync(async (req, res) => {
 
   let aranantext = decodeURIComponent(req.body.searchTerm);
   console.log('aranantext:', aranantext);
-  aranantext = aranantext.replace(/\?/g, '.?');
-  aranantext = aranantext.replace(/\*/g, '.*');
-  aranantext = aranantext.replace(/٭/g, '.*');
-  aranantext = aranantext.replace(/؟/g, '.?');
+  aranantext = aranantext.replace(/\?/g, '.');
+  aranantext = aranantext.replace(/\*/g, '.*.');
+  aranantext = aranantext.replace(/٭/g, '.*.');
+  aranantext = aranantext.replace(/؟/g, '.');
 
   if (req.body.searchType === 'advanced') {
     aranantext = aranantext.trim();
@@ -51,14 +51,21 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   options.searchTerm = aranantext;
   options.searchType = req.body.searchType;
   options.searchFilter = req.body.searchFilter;
-
-  if (req.user) {
-    options.limit = req.body.limit || 10;
-    options.page = req.body.page;
-  } else {
-    options.limit = req.body.searchType === 'advanced' || req.body.searchType === 'exactwithdash' ? req.body.limit : 7;
-    options.page = req.body.page;
-  }
+  options.limit = req.body.limit || 10;
+  options.page = req.body.page || 1;
+  // if (req.user) {
+  //   options.limit = req.body.limit || 10;
+  //   options.page = req.body.page;
+  // } else {
+  //   options.limit =
+  //     // eslint-disable-next-line no-nested-ternary
+  //     req.body.searchType === 'advanced' || req.body.searchType === 'exactwithdash' || req.body.searchType === 'maddeanlam'
+  //       ? req.body.limit
+  //       : req.body.searchType === 'exact'
+  //       ? 30
+  //       : 7;
+  //   options.page = req.body.page;
+  // }
   // eslint-disable-next-line no-console
   console.log('options:', options);
 
@@ -67,7 +74,7 @@ const getRawKelimeler = catchAsync(async (req, res) => {
 });
 
 const getKelimeById = catchAsync(async (req, res) => {
-  const madde = await searchService.getKelimeById(req.params.maddeId);
+  const madde = await searchService.getKelimeById(req.params.maddeId, req.params.dictId);
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
   }

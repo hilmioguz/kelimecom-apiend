@@ -4,7 +4,7 @@ const { toJSON, paginate } = require('./plugins');
 
 const { Schema } = mongoose;
 
-const packetOptionsSchema = mongoose.Schema(
+const customPacketsSchema = mongoose.Schema(
   {
     packetId: {
       type: Schema.Types.ObjectId,
@@ -14,21 +14,45 @@ const packetOptionsSchema = mongoose.Schema(
     },
     name: {
       type: String,
-      required: true,
     },
-    desc: {
+    role: {
       type: String,
     },
-    limitValue: {
+    langLimit: {
       type: Number,
     },
-    isIncluded: {
-      type: Boolean,
-      default: true,
+    allowedLangs: {
+      type: Array,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    dictLimit: {
+      type: Number,
+    },
+    allowedDicts: {
+      type: Array,
+    },
+    maddebasi: {
+      limitlessCount: {
+        type: Number,
+      },
+      limitLater: {
+        type: Number,
+      },
+    },
+    cekim: {
+      limitlessCount: {
+        type: Number,
+      },
+      limitLater: {
+        type: Number,
+      },
+    },
+    anlam: {
+      limitlessCount: {
+        type: Number,
+      },
+      limitLater: {
+        type: Number,
+      },
     },
   },
   {
@@ -37,9 +61,9 @@ const packetOptionsSchema = mongoose.Schema(
 );
 
 // add plugin that converts mongoose to json
-packetOptionsSchema.plugin(toJSON);
-packetOptionsSchema.plugin(paginate);
-packetOptionsSchema.plugin(autopop);
+customPacketsSchema.plugin(toJSON);
+customPacketsSchema.plugin(paginate);
+customPacketsSchema.plugin(autopop);
 
 /**
  * Check if option is already in Db
@@ -47,7 +71,7 @@ packetOptionsSchema.plugin(autopop);
  * @param {ObjectId} [excludeOptionId] - The id of the option to be excluded
  * @returns {Promise<boolean>}
  */
-packetOptionsSchema.statics.isOptionAlreadyInDB = async function (body, excludeOptionId) {
+customPacketsSchema.statics.isOptionAlreadyInDB = async function (body, excludeOptionId) {
   let option = null;
   if (body && body.packetId) {
     option = await this.findOne({ name: body.name, packetId: body.packetId, _id: { $ne: excludeOptionId } });
@@ -58,8 +82,8 @@ packetOptionsSchema.statics.isOptionAlreadyInDB = async function (body, excludeO
 };
 
 /**
- * @typedef Packetoptions
+ * @typedef Custompackets
  */
-const Packetoptions = mongoose.model('Packetoptions', packetOptionsSchema);
+const Custompackets = mongoose.model('Custompackets', customPacketsSchema);
 
-module.exports = Packetoptions;
+module.exports = Custompackets;
