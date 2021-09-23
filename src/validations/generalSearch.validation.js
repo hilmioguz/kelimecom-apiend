@@ -39,6 +39,7 @@ const getKelimeById = {
 
 const getKelimeByMadde = {
   params: Joi.object().keys({
+    id: Joi.string(),
     madde: Joi.string(),
     dil: Joi.string().optional(),
     sozluk: Joi.string().optional(),

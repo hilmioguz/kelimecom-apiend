@@ -83,11 +83,13 @@ const getKelimeById = catchAsync(async (req, res) => {
 
 const getKelimeByMadde = catchAsync(async (req, res) => {
   let aranantext = req.params.madde;
+  const arananId = req.params.id;
   const { dil, tip, sozluk } = req.params;
 
   aranantext = aranantext.replace(/\?/g, '.?');
   aranantext = aranantext.replace(/\*/g, '.*');
   const options = {};
+  options.searchId = arananId;
   options.searchTerm = aranantext;
   options.searchType = req.body.type;
   options.searchFilter = req.body.searchFilter;

@@ -151,6 +151,7 @@ const rawQueryKelimeler = async (options) => {
   const groupCond = {
     $group: {
       _id: '$dict.lang',
+
       madde: {
         $addToSet: '$madde',
       },
@@ -168,9 +169,45 @@ const rawQueryKelimeler = async (options) => {
       langOrder: {
         $addToSet: '$langOrder',
       },
+      tempId: {
+        $addToSet: {
+          k: '$$ROOT.madde',
+          v: '$$ROOT._id',
+        },
+      },
     },
   };
-
+  const groupExtra = [
+    {
+      $addFields: {
+        mid: {
+          $filter: {
+            input: '$tempId',
+            as: 'y',
+            cond: {
+              $eq: ['$$y.k', '$madde'],
+            },
+          },
+        },
+      },
+    },
+    {
+      $unwind: {
+        path: '$mid',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        maddeId: {
+          $toString: '$mid.v',
+        },
+      },
+    },
+    {
+      $unset: ['tempId', 'mid'],
+    },
+  ];
   let condition = null;
 
   if (options.searchType === 'maddeanlam') {
@@ -320,6 +357,7 @@ const rawQueryKelimeler = async (options) => {
         },
       }
     );
+    condition = condition.concat(groupExtra);
   } else {
     condition.push({
       $addFields: {
@@ -492,6 +530,7 @@ const getKelimeByMadde = async (options) => {
       {
         $match: {
           madde: options.searchTerm,
+          _id: ObjectId(options.searchId),
         },
       },
       {
@@ -520,6 +559,14 @@ const getKelimeByMadde = async (options) => {
       {
         $addFields: {
           maddeLength: { $strLenCP: '$madde' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'maddes',
+          localField: 'whichDict.karsiMaddeId',
+          foreignField: '_id',
+          as: 'karsi',
         },
       }
     );

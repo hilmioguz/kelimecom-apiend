@@ -11,7 +11,7 @@ router
   .post(auth('freeZone'), validate(generalSearchValidation.getRawKelimeler), generalSearchController.getRawKelimeler);
 
 router
-  .route('/kelime/:madde/:dil?/:tip?/:sozluk?')
+  .route('/kelime/:madde/:id/:dil?/:tip?/:sozluk?')
   .get(auth('freeZone'), validate(generalSearchValidation.getKelimeByMadde), generalSearchController.getKelimeByMadde);
 router
   .route('/arama/:madde')
