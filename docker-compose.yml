@@ -3,23 +3,23 @@ version: '3'
 services:
   apiend:
     build: apiend/.
-    image: monster-nodejsapi-app
+    image: kelimecomdb-app
     environment:
-      - MONGODB_URL=mongodb://mongodb:27017/monster-nodejsapi
+      - MONGODB_URL=mongodb://mongodb:27017/kelimecomdb
     ports:
       - '5001:5001'
     depends_on:
       - mongodb
     volumes:
-      - .:/usr/src/monster-nodejsapi-app
+      - .:/usr/src/kelimecomdb-app
     networks:
-      - monster-nodejsapi-network
+      - kelimecomdb-network
 
   frontend:
     build: frontend/.
     image: monster-nodejsfront-app
     environment:
-      - MONGODB_URL=mongodb://mongodb:27017/monster-nodejsapi
+      - MONGODB_URL=mongodb://mongodb:27017/kelimecomdb
     ports:
       - '5000:5000'
     depends_on:
@@ -28,7 +28,7 @@ services:
     volumes:
       - .:/usr/src/monster-nodejsfront-app
     networks:
-      - monster-nodejsapi-network
+      - kelimecomdb-network
 
   mongodb:
     image: mongo:4.2.1-bionic
@@ -37,11 +37,11 @@ services:
     volumes:
       - dbdata:/data/db
     networks:
-      - monster-nodejsapi-network
+      - kelimecomdb-network
 
 volumes:
   dbdata:
 
 networks:
-  monster-nodejsapi-network:
+  kelimecomdb-network:
     driver: bridge

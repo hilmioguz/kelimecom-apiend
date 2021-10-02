@@ -21,6 +21,7 @@ const getRawKelimeler = {
     page: Joi.number().optional(),
     searchTerm: Joi.string(),
     searchType: Joi.string().optional(),
+    clientIp: Joi.string().optional(),
     searchFilter: Joi.object().keys({
       dil: Joi.string().optional(),
       tip: Joi.string().optional(),
@@ -44,9 +45,18 @@ const getKelimeByMadde = {
     dil: Joi.string().optional(),
     sozluk: Joi.string().optional(),
     tip: Joi.string().optional(),
+    clientIp: Joi.string().optional(),
   }),
 };
-
+const getKelimeByMaddeExceptItself = {
+  params: Joi.object().keys({
+    id: Joi.string(),
+    madde: Joi.string(),
+    dil: Joi.string().optional(),
+    sozluk: Joi.string().optional(),
+    tip: Joi.string().optional(),
+  }),
+};
 const getMaddeByRandom = {
   params: Joi.object().keys({
     limit: Joi.string().optional(),
@@ -60,4 +70,5 @@ module.exports = {
   getRawKelimeler,
   getKelimeByMadde,
   getMaddeByRandom,
+  getKelimeByMaddeExceptItself,
 };

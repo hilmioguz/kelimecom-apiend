@@ -9,3 +9,6 @@ module.exports.guestController = require('./guest.controller');
 module.exports.guestHistoryController = require('./guesthistory.controller');
 module.exports.userHistoryController = require('./userhistory.controller');
 module.exports.generalSearchController = require('./generalSearch.controller');
+module.exports.invitationController = require('./invitation.controller');
+module.exports.iletisimController = require('./iletisim.controller');
+module.exports.statsController = require('./stats.controller');

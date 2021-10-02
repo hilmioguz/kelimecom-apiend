@@ -72,7 +72,7 @@ const userSchema = mongoose.Schema(
         return !this.googleId;
       },
       ref: 'Packets',
-      default: ObjectId('613bd72f5aefc0ac9395ffe0'), // standard paket id in db
+      default: ObjectId('615275545535851845375bf3'), // standard paket id in db
       autopopulate: true,
     },
     customPacketId: {
@@ -166,7 +166,7 @@ userSchema.pre('save', async function (next) {
         if (isV4(ip)) {
           const ipMatch = kurumlar.filter((kurum) => inRange(ip, kurum.cidr));
           // eslint-disable-next-line no-console
-          console.log('imatch:', ipMatch);
+          // console.log('imatch:', ipMatch);
           if (ipMatch && ipMatch.length) {
             user.packetId = ObjectId(kurumsalpaket[0]._id);
           }

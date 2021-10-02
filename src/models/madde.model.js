@@ -16,6 +16,10 @@ const maddeSchema = mongoose.Schema(
     },
     whichDict: [
       {
+        id: {
+          type: Schema.Types.ObjectId,
+          default: mongoose.Types.ObjectId(),
+        },
         anlam: {
           type: String,
           required: true,
@@ -36,6 +40,11 @@ const maddeSchema = mongoose.Schema(
           ref: 'Dictionaries',
           autopopulate: true,
         },
+        alttur: [
+          {
+            type: String,
+          },
+        ],
         tur: [
           {
             type: String,

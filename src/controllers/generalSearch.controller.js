@@ -4,7 +4,7 @@ const fs = require('fs');
 const ApiError = require('../utils/ApiError');
 const prefilter = require('../utils/prefilter');
 const catchAsync = require('../utils/catchAsync');
-const { searchService } = require('../services');
+const { searchService, searchstatService } = require('../services');
 
 const creatKelimeler = catchAsync(async (req, res) => {
   const packet = await searchService.createKelimeler(req.body);
@@ -13,7 +13,9 @@ const creatKelimeler = catchAsync(async (req, res) => {
 
 const getKelimeler = catchAsync(async (req, res) => {
   // eslint-disable-next-line no-console
+  console.log('params:', req.params);
   console.log('body:', req.body);
+  console.log('query:', req.query);
   let body = '';
   if (req.params.madde) {
     body = { query: req.params.madde };
@@ -31,7 +33,6 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   console.log('query:', req.query);
 
   let aranantext = decodeURIComponent(req.body.searchTerm);
-  console.log('aranantext:', aranantext);
   aranantext = aranantext.replace(/\?/g, '.');
   aranantext = aranantext.replace(/\*/g, '.*.');
   aranantext = aranantext.replace(/٭/g, '.*.');
@@ -53,21 +54,22 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   options.searchFilter = req.body.searchFilter;
   options.limit = req.body.limit || 10;
   options.page = req.body.page || 1;
-  // if (req.user) {
-  //   options.limit = req.body.limit || 10;
-  //   options.page = req.body.page;
-  // } else {
-  //   options.limit =
-  //     // eslint-disable-next-line no-nested-ternary
-  //     req.body.searchType === 'advanced' || req.body.searchType === 'exactwithdash' || req.body.searchType === 'maddeanlam'
-  //       ? req.body.limit
-  //       : req.body.searchType === 'exact'
-  //       ? 30
-  //       : 7;
-  //   options.page = req.body.page;
-  // }
-  // eslint-disable-next-line no-console
-  console.log('options:', options);
+
+  if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
+    let searchedBy = '';
+    const payload = {};
+    if (req.user) {
+      searchedBy = req.user.id;
+    } else {
+      searchedBy = req.body.clientIp;
+    }
+    payload.searchTerm = decodeURIComponent(req.body.searchTerm);
+    payload.searchType = options.searchType;
+    payload.searchedBy = searchedBy;
+    payload.secilenDil = options.searchFilter.dil;
+    payload.secilenTip = options.searchFilter.tip;
+    searchstatService.createSearchstat(payload);
+  }
 
   const result = await searchService.rawQueryKelimeler(options);
   res.send(result);
@@ -97,6 +99,23 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
   options.searchTip = tip;
   options.searchDict = sozluk;
 
+  if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
+    let searchedBy = '';
+    const payload = {};
+    if (req.user) {
+      searchedBy = req.user.id;
+    } else {
+      searchedBy = req.params.clientIp;
+    }
+    payload.searchTerm = req.params.madde;
+    payload.searchType = options.searchType;
+    payload.searchedBy = searchedBy;
+    payload.secilenDil = dil;
+    payload.secilenTip = tip;
+    payload.secilenSozluk = sozluk;
+    searchstatService.createSearchstat(payload);
+  }
+
   if (req.user) {
     options.limit = req.body.limit || 10;
     options.page = req.body.page;
@@ -107,7 +126,34 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
   console.log('options:', options);
 
   const madde = await searchService.getKelimeByMadde(options);
+  if (!madde) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
+  }
 
+  res.send(madde);
+});
+
+const getKelimeByMaddeExceptItself = catchAsync(async (req, res) => {
+  let aranantext = req.params.madde;
+  const arananId = req.params.id;
+  const { dil } = req.params;
+
+  aranantext = aranantext.replace(/\?/g, '.?');
+  aranantext = aranantext.replace(/\*/g, '.*');
+  const options = {};
+  options.searchId = arananId;
+  options.searchTerm = aranantext;
+  options.searchType = req.body.type;
+  options.searchFilter = req.body.searchFilter;
+  options.searchDil = dil;
+  // options.searchTip = tip;
+  // options.searchDict = sozluk;
+  options.limit = 100;
+
+  // eslint-disable-next-line no-console
+  // console.log('options:', options);
+
+  const madde = await searchService.getKelimeByMaddeExceptItself(options);
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
   }
@@ -123,13 +169,13 @@ const getMaddeByRandom = catchAsync(async (req, res) => {
   try {
     // eslint-disable-next-line security/detect-non-literal-fs-filename
     randomnum = await fs.readFileSync(`${__dirname}/../randomMadde.txt`, 'utf8');
-    console.log(randomnum);
+    // console.log(randomnum);
   } catch (err) {
     console.error(err);
   }
   options.skip = Number(randomnum);
   // eslint-disable-next-line no-console
-  console.log('options:', options);
+  // console.log('options:', options);
 
   const madde = await searchService.getKelimeByMadde(options);
 
@@ -146,4 +192,5 @@ module.exports = {
   getMaddeByRandom,
   getRawKelimeler,
   getKelimeById,
+  getKelimeByMaddeExceptItself,
 };

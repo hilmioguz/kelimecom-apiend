@@ -21,7 +21,7 @@ const paginate = (schema) => {
    */
   schema.statics.paginate = async function (filter, options) {
     // eslint-disable-next-line no-console
-    console.log('fiter:', filter);
+    // console.log('fiter:', filter);
     let sort = '';
     let orderby = 'asc';
     if (options.sortBy) {

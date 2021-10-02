@@ -8,3 +8,6 @@ module.exports.Custompackets = require('./custompackets.model');
 module.exports.Dictionaries = require('./dictionaries.model');
 module.exports.Guest = require('./guest.model');
 module.exports.Guesthistory = require('./guesthistory.model');
+module.exports.Invitation = require('./invitation.model');
+module.exports.Searchstat = require('./searchstat.model');
+module.exports.Addstat = require('./addstat.model');

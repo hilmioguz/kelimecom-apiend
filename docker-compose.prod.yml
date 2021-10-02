@@ -2,5 +2,5 @@ version: '3'
 
 services:
   node-app:
-    container_name: monster-nodejsapi-app-prod
+    container_name: kelimecomdb-app-prod
     command: yarn start

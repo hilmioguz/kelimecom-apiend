@@ -28,7 +28,7 @@ const aggregatePaginate = (schema) => {
       q.sort(sort);
     }
     // eslint-disable-next-line no-console
-    console.log('Q:', JSON.stringify(q));
+    // console.log('Q:', JSON.stringify(q));
     return Promise.all([
       q.skip(skipDocuments).limit(resultsPerPage).exec(),
       countQuery

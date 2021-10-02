@@ -71,9 +71,9 @@ app.use(errorHandler);
 const getRandomMadde = async () => {
   const count = await Madde.countDocuments((err, cnt) => cnt);
   // eslint-disable-next-line no-console
-  console.log('count:', count);
   const randomnum = Math.floor(Math.random() * count);
 
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   fs.writeFileSync(`${__dirname}/randomMadde.txt`, randomnum.toString(), { flag: 'w+' }, (err) => {
     if (err) {
       // eslint-disable-next-line no-console

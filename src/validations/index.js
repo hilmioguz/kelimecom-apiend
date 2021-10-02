@@ -6,3 +6,4 @@ module.exports.kurumValidation = require('./kurumlar.validation');
 module.exports.customPacketValidation = require('./custompackets.validation');
 module.exports.dictionaryValidation = require('./dictionaries.validation');
 module.exports.generalSearchValidation = require('./generalSearch.validation');
+module.exports.invitationValidation = require('./invitation.validation');

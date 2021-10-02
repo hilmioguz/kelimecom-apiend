@@ -30,88 +30,94 @@ const rawQueryKelimeler = async (options) => {
   const conditionalMatch = {};
   const conditionalMatch2 = {};
   const conditionalMatch3 = {};
+  let { searchTerm } = options;
+  const { searchType, searchFilter } = options;
 
+  let hiddenTur = '';
+  if (searchTerm.includes('_')) {
+    [searchTerm, hiddenTur] = searchTerm.split('_');
+    // eslint-disable-next-line no-console
+    // console.log('HİDDEN _ var:', searchTerm, hiddenTur);
+  }
   const langOrders = [];
   const defaultLangOrders = ['tr', 'en', 'os', 'ar', 'fa'];
   // eslint-disable-next-line no-console
-  console.log('search service-->:', options);
+  // ('search service-->:', options);
 
-  if (options.searchType === 'exact') {
-    conditionalMatch.madde = options.searchTerm;
-  } else if (options.searchType === 'exactwithdash') {
+  if (searchType === 'exact') {
+    if (['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
+      conditionalMatch.madde = {
+        $regex: new RegExp(`^${searchTerm}$`, 'i'),
+      };
+    } else {
+      conditionalMatch.madde = searchTerm;
+    }
+  } else if (searchType === 'exactwithdash') {
     conditionalMatch.$or = [
       {
         madde: {
-          $regex: new RegExp(`^${options.searchTerm}-`, 'i'),
+          $regex: new RegExp(`^${searchTerm}-`, 'i'),
         },
       },
       {
         madde: {
-          $regex: new RegExp(`-${options.searchTerm}$`, 'i'),
+          $regex: new RegExp(`-${searchTerm}$`, 'i'),
         },
       },
       {
         madde: {
-          $regex: new RegExp(` ${options.searchTerm} `, 'i'),
+          $regex: new RegExp(` ${searchTerm} `, 'i'),
         },
       },
       {
         madde: {
-          $regex: new RegExp(`^${options.searchTerm} `, 'i'),
+          $regex: new RegExp(`^${searchTerm} `, 'i'),
         },
       },
       {
         madde: {
-          $regex: new RegExp(` ${options.searchTerm}$`, 'i'),
+          $regex: new RegExp(` ${searchTerm}$`, 'i'),
         },
       },
       {
         madde: {
-          $regex: new RegExp(`-${options.searchTerm}-`, 'i'),
+          $regex: new RegExp(`-${searchTerm}-`, 'i'),
         },
       },
     ];
-  } else if (options.searchType === 'maddeanlam') {
+  } else if (searchType === 'maddeanlam') {
     conditionalMatch['whichDict.anlam'] = {
-      $regex: new RegExp(` ${options.searchTerm} `, 'i'),
+      $regex: new RegExp(` ${searchTerm} `, 'i'),
     };
-  } else if (
-    options.searchType === 'advanced' &&
-    !['?', '*', '[', ']', '(', ')', '.'].some((char) => options.searchTerm.includes(char))
-  ) {
-    conditionalMatch.madde = options.searchTerm;
-  } else if (
-    options.searchType === 'advanced' &&
-    ['?', '*', '[', ']', '(', ')', '.'].some((char) => options.searchTerm.includes(char))
-  ) {
+  } else if (searchType === 'advanced' && !['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
+    conditionalMatch.madde = searchTerm;
+  } else if (searchType === 'advanced' && ['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
     conditionalMatch.madde = {
-      $regex: new RegExp(`^${options.searchTerm}$`, 'i'),
+      $regex: new RegExp(`^${searchTerm}$`, 'i'),
     };
   } else {
     conditionalMatch.madde = {
-      $regex: new RegExp(`^${options.searchTerm}`, 'i'),
+      $regex: new RegExp(`^${searchTerm}`, 'i'),
     };
   }
-
-  if (options.searchFilter) {
-    if (options.searchFilter.dil && options.searchFilter.dil !== 'tumu' && options.searchFilter.dil !== 'undefined') {
-      conditionalMatch2['dict.lang'] = options.searchFilter.dil;
+  if (hiddenTur) {
+    conditionalMatch2['whichDict.tur'] = { $in: [hiddenTur] };
+  }
+  if (searchFilter) {
+    if (searchFilter.dil && searchFilter.dil !== 'tumu' && searchFilter.dil !== 'undefined') {
+      conditionalMatch2['dict.lang'] = searchFilter.dil;
     }
 
-    if (options.searchFilter.tip && options.searchFilter.tip !== 'tumu' && options.searchFilter.tip !== 'undefined') {
-      conditionalMatch2['whichDict.tip'] = { $in: [options.searchFilter.tip] };
+    if (searchFilter.tip && searchFilter.tip !== 'tumu' && searchFilter.tip !== 'undefined') {
+      conditionalMatch2['whichDict.tip'] = { $in: [searchFilter.tip] };
     }
 
-    if (
-      options.searchFilter.sozluk &&
-      options.searchFilter.sozluk !== 'tumu' &&
-      options.searchFilter.sozluk !== 'undefined'
-    ) {
-      conditionalMatch2['dict.code'] = { $regex: new RegExp(`^${options.searchFilter.sozluk}$`, 'i') };
+    if (searchFilter.sozluk && searchFilter.sozluk !== 'tumu' && searchFilter.sozluk !== 'undefined') {
+      conditionalMatch2['dict.code'] = { $regex: new RegExp(`^${searchFilter.sozluk}$`, 'i') };
     }
 
-    if (options.searchFilter.filterOrders) {
-      const f = options.searchFilter.filterOrders.split(',');
+    if (searchFilter.filterOrders) {
+      const f = searchFilter.filterOrders.split(',');
       f.forEach((dil, index) => {
         langOrders.push({ case: { $eq: ['$dict.lang', dil] }, then: index });
       });
@@ -125,27 +131,25 @@ const rawQueryKelimeler = async (options) => {
       langOrders.push({ case: { $eq: ['$dict.lang', dil] }, then: index });
     });
   }
-  let kelimeuzunlugu = options.searchTerm.length;
+  let kelimeuzunlugu = searchTerm.length;
 
-  if (['*'].some((char) => options.searchTerm.includes(char))) {
+  if (['*'].some((char) => searchTerm.includes(char))) {
     // eslint-disable-next-line no-invalid-regexp
-    const xcount = options.searchTerm.match(/([*])/g);
+    const xcount = searchTerm.match(/([*])/g);
     // eslint-disable-next-line no-console
-    console.log('xcount', xcount, xcount.length);
+    // console.log('xcount', xcount, xcount.length);
     if (xcount) {
       kelimeuzunlugu -= xcount.length * 2;
     }
   }
-  if (['(', ')'].some((char) => options.searchTerm.includes(char))) {
-    const orcount = options.searchTerm.match(/(\([\u0020-\u0FFF|]+\))/g);
+  if (['(', ')'].some((char) => searchTerm.includes(char))) {
+    const orcount = searchTerm.match(/(\([\u0020-\u0FFF|]+\))/g);
     // eslint-disable-next-line no-console
-    console.log('orcount', orcount);
     if (orcount && orcount[0]) {
       kelimeuzunlugu -= orcount[0].length - 1;
     }
   }
   // eslint-disable-next-line no-console
-  console.log('kelimeuzunlugu:', kelimeuzunlugu);
   conditionalMatch3.maddeLength = { $gte: kelimeuzunlugu };
 
   const groupCond = {
@@ -210,7 +214,7 @@ const rawQueryKelimeler = async (options) => {
   ];
   let condition = null;
 
-  if (options.searchType === 'maddeanlam') {
+  if (searchType === 'maddeanlam') {
     condition = [
       {
         $unwind: {
@@ -294,7 +298,7 @@ const rawQueryKelimeler = async (options) => {
     ];
   }
 
-  if (options.searchType === 'advanced') {
+  if (searchType === 'advanced') {
     condition.push(
       {
         $addFields: {
@@ -329,7 +333,7 @@ const rawQueryKelimeler = async (options) => {
         },
       }
     );
-  } else if (options.searchType === 'ilksorgu') {
+  } else if (searchType === 'ilksorgu') {
     condition.push({
       $addFields: {
         langOrder: {
@@ -390,7 +394,7 @@ const rawQueryKelimeler = async (options) => {
   };
 
   // eslint-disable-next-line no-console
-  console.log('-> suboptions:', suboptions);
+  // console.log('-> suboptions:', suboptions);
   const maddeler = await Madde.aggregatePaginate(agg, suboptions, (err, results) => {
     if (err) {
       // eslint-disable-next-line no-console
@@ -526,11 +530,24 @@ const getKelimeByMadde = async (options) => {
       }
     );
   } else {
+    const realmaddeId = options.searchId.split('-')[0] || options.searchId;
+    const anlamId = options.searchId.split('-')[1] || null;
     aggArray.push(
       {
         $match: {
           madde: options.searchTerm,
-          _id: ObjectId(options.searchId),
+          _id: ObjectId(realmaddeId),
+        },
+      },
+      {
+        $addFields: {
+          sozlukler: {
+            $reduce: {
+              input: '$whichDict',
+              initialValue: [],
+              in: { $concatArrays: ['$$value', ['$$this.dictId']] },
+            },
+          },
         },
       },
       {
@@ -538,7 +555,23 @@ const getKelimeByMadde = async (options) => {
           path: '$whichDict',
           preserveNullAndEmptyArrays: true,
         },
-      },
+      }
+    );
+
+    if (anlamId) {
+      aggArray.push({
+        $match: {
+          'whichDict.id': ObjectId(anlamId),
+        },
+      });
+      // subaggArray.push({
+      //   $match: {
+      //     'whichDict.id': { $ne: ObjectId(anlamId) },
+      //   },
+      // });
+    }
+
+    aggArray.push(
       {
         $lookup: {
           from: 'dictionaries',
@@ -571,25 +604,105 @@ const getKelimeByMadde = async (options) => {
       }
     );
   }
-  const agg = Madde.aggregate(aggArray);
-
   const suboptions = { sort: 'maddeLength', limit: options.limit, page: options.page || 1 };
-
+  const agg = Madde.aggregate(aggArray);
   const maddeler = await Madde.aggregatePaginate(agg, options.searchType === 'random' ? '' : suboptions, (err, results) => {
     if (err) {
       // eslint-disable-next-line no-console
-      console.err(err);
+      console.log(err);
     } else {
       return results;
     }
   });
+
   return maddeler;
 };
 
+const getKelimeByMaddeExceptItself = async (options) => {
+  const conditionalMatch = {};
+
+  if (options.searchDil && options.searchDil !== 'tumu' && options.searchDil !== 'undefined') {
+    conditionalMatch['dict.lang'] = { $regex: new RegExp(`${options.searchDil}`, 'ig') };
+  }
+
+  const aggArray = [];
+
+  const realmaddeId = options.searchId.split('-')[0] || options.searchId;
+  const anlamId = options.searchId.split('-')[1] || null;
+  aggArray.push(
+    {
+      $match: {
+        madde: options.searchTerm,
+        _id: ObjectId(realmaddeId),
+      },
+    },
+    {
+      $unwind: {
+        path: '$whichDict',
+        preserveNullAndEmptyArrays: true,
+      },
+    }
+  );
+
+  if (anlamId) {
+    aggArray.push({
+      $match: {
+        'whichDict.id': { $ne: ObjectId(anlamId) },
+      },
+    });
+  }
+
+  aggArray.push(
+    {
+      $lookup: {
+        from: 'dictionaries',
+        localField: 'whichDict.dictId',
+        foreignField: '_id',
+        as: 'dict',
+      },
+    },
+    {
+      $unwind: {
+        path: '$dict',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $match: conditionalMatch,
+    },
+    {
+      $addFields: {
+        maddeLength: { $strLenCP: '$madde' },
+      },
+    },
+    {
+      $lookup: {
+        from: 'maddes',
+        localField: 'whichDict.karsiMaddeId',
+        foreignField: '_id',
+        as: 'karsi',
+      },
+    }
+  );
+
+  const suboptions = { sort: 'maddeLength' };
+  const agg = Madde.aggregate(aggArray);
+  const maddeler = await Madde.aggregatePaginate(agg, suboptions, (err, results) => {
+    if (err) {
+      // eslint-disable-next-line no-console
+      console.log(err);
+    } else {
+      return results;
+    }
+  });
+
+  return maddeler;
+};
 module.exports = {
   createKelimeler,
   queryKelimeler,
   getKelimeByMadde,
   rawQueryKelimeler,
   getKelimeById,
+  getKelimeByMaddeExceptItself,
 };

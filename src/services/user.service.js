@@ -11,7 +11,7 @@ const createUser = async (userBody) => {
   if (await User.isEmailTaken(userBody.email)) {
     throw new ApiError(
       httpStatus.BAD_REQUEST,
-      'Bu e-posta adresi ile daha önce kayıt yapılmıştır. Giriş yapmayı veya şifre hatırlatmayı deneyin '
+      'Bu e-posta adresi ile daha önce kayıt yapılmıştır. Giriş yapmayı veya şifre hatırlatmayı deneyiniz.\nKullandığınız eposta adresi bir sosyal medya hesabına ait ise (ör: gmail.com), ikona tıklayarak onun üzerinden giriş yapmayı deneyiniz.'
     );
   }
   const user = await User.create(userBody);
@@ -42,10 +42,26 @@ const createGoogleUser = async (profile) => {
       return user;
     }
   } else {
-    const user = await User.create(payload);
-    // eslint-disable-next-line no-console
-    // console.log('GOOGLE USER CREATE:', user);
-    return user;
+    try {
+      const user = await User.create(payload);
+      // eslint-disable-next-line no-console
+      console.log('GOOGLE USER CREATED:');
+      return user;
+    } catch (error) {
+      const user = await User.findOne({ email: payload.email });
+      if (!user) {
+        throw new ApiError(httpStatus.BAD_REQUEST, 'Kayıtlı Eposta kullanıcısı yok!');
+      }
+      user.googleId = payload.googleId;
+      user.picture = payload.picture;
+      user.isEmailVerified = payload.isEmailVerified;
+      user.name = payload.name;
+      user.clientIp = payload.clientIp;
+      await user.save();
+      // eslint-disable-next-line no-console
+      console.log('GOOGLE USER UPDATED:');
+      return user;
+    }
   }
 };
 

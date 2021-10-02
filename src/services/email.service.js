@@ -91,9 +91,7 @@ const sendVerificationEmail = async (to, token) => {
     E-postanızı doğrulamak için şu bağlantıya tıklayın: ${verificationEmailUrl}
     Bir hesap oluşturmadıysanız, bu e-postayı dikkate almayın.\n\nKelime.com`,
   };
-  const a = await sendMailNow(mailOptions);
-  // eslint-disable-next-line no-console
-  console.log('mail sent:', a);
+  await sendMailNow(mailOptions);
 };
 
 const sendWelcomeEmail = async (to, name) => {
@@ -105,9 +103,41 @@ const sendWelcomeEmail = async (to, name) => {
     text: `Sayın ${name}, üyelik kaydınız gerçekleştirilmiştir. Sitemize üye olduğunuz için teşekkür ederiz.
     Bir hesap oluşturmadıysanız, bu e-postayı dikkate almayınız. \n\nKelime.com`,
   };
-  const a = await sendMailNow(mailOptions);
-  // eslint-disable-next-line no-console
-  console.log('mail sent:', a);
+  await sendMailNow(mailOptions);
+};
+
+const sendInvitation = async (to, name) => {
+  const mailOptions = {
+    from: 'Kelime.com <kelime@hiperlink.com.tr>',
+    to: `${to}<${to}>`,
+    replyTo: 'kelime@hiperlink.com.tr',
+    subject: 'Kelime.com sitesine davet edildiniz',
+    text: `${name}, Kelime.com Sözlükler Veritabanını kullanmaktan hoşlanacağınızı düşünüyor. Redhouse Turkish And English Lexicon, Kamûs-i Türki, Derleme Sözlüğü, Kamusu'l-Muhit, Vankulu Lügatı, Tomurcuk İngilizce Sözlük, Genel Osmanlıca Sözlüğü, Genel Arapça Sözlüğü ve onlarca sözlük içerisinde detaylı kelime araması yapabilirsiniz.\n\n Başka sözlükler üzerinde de çalışıyoruz. Sisteme aktarımı biten ve devam eden sözlükler hakkında haberdar olmak için, http://kelime.com/sozlukler adresine tıklayabilirsiniz.\n\nKeyifli araştırmalar ☺\n\nHiperlink Ar-Ge`,
+    html: `<strong>${name}</strong>, Kelime.com Sözlükler Veritabanını kullanmaktan hoşlanacağınızı düşünüyor. Redhouse Turkish And English Lexicon, Kamûs-i Türki, Derleme Sözlüğü, Kamusu'l-Muhit, Vankulu Lügatı, Tomurcuk İngilizce Sözlük, Genel Osmanlıca Sözlüğü, Genel Arapça Sözlüğü ve onlarca sözlük içerisinde detaylı kelime araması yapabilirsiniz.<br/><br/>Başka sözlükler üzerinde de çalışıyoruz. Sisteme aktarımı biten ve devam eden sözlükler hakkında haberdar olmak için, <strong><a href="http://kelime.com/sozlukler" target="_blank">buraya</a></strong> tıklayabilirsiniz.<br/><br/>Keyifli araştırmalar ☺<br/><br/>Hiperlink Ar-Ge`,
+  };
+  await sendMailNow(mailOptions);
+};
+
+const sendContactMessage = async (message) => {
+  const mailOptions = {
+    from: 'Kelime.com <kelime@hiperlink.com.tr>',
+    to: `Tarık Eser <tarikeser@gmail.com>`,
+    replyTo: 'kelime@hiperlink.com.tr',
+    subject: 'Kelime.com sitesi iletişim formu üzerinden gönderilen bir mesajınız var!',
+    text: `Gönderilen mesaj içeriği\n\n
+    Göderen isim : ${message.adisoyadi}\n\n
+    Email adresi: ${message.email} \n\n
+    Konu: ${message.konu} \n\n
+    Başlık: ${message.baslik} \n\n
+    Mesaj: ${message.mesaj}`,
+    html: `Gönderilen mesaj içeriği<br/><br/>
+    Göderen isim : <strong>${message.adisoyadi}</strong><br/>
+    Email adresi: ${message.email} <br/>
+    Konu: ${message.konu} <br/>
+    Başlık: ${message.baslik} <br/>
+    Mesaj: ${message.mesaj}`,
+  };
+  await sendMailNow(mailOptions);
 };
 
 module.exports = {
@@ -115,4 +145,6 @@ module.exports = {
   sendResetPasswordEmail,
   sendVerificationEmail,
   sendWelcomeEmail,
+  sendInvitation,
+  sendContactMessage,
 };

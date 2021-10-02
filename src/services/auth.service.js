@@ -73,7 +73,7 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
   try {
     const resetPasswordTokenDoc = await tokenService.verifyToken(resetPasswordToken, tokenTypes.RESET_PASSWORD);
     // eslint-disable-next-line no-console
-    console.log('resetPasswordTokenDoc:', resetPasswordTokenDoc);
+    // console.log('resetPasswordTokenDoc:', resetPasswordTokenDoc);
     const user = await userService.getUserById(resetPasswordTokenDoc.user);
     if (!user) {
       throw new Error();

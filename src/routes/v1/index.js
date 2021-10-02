@@ -7,6 +7,9 @@ const packetRoute = require('./packet.route');
 const kurumlarRoute = require('./kurumlar.route');
 const customPacketRoute = require('./custompacket.route');
 const dictionaryRoute = require('./dictionary.route');
+const davetRoute = require('./davet.route');
+const iletisimRoute = require('./iletisim.route');
+const statsRoute = require('./stats.route');
 const generalSearchRoute = require('./generalSearch.route');
 const config = require('../../config/config');
 
@@ -44,6 +47,18 @@ const defaultRoutes = [
   {
     path: '/kurumlar',
     route: kurumlarRoute,
+  },
+  {
+    path: '/davet',
+    route: davetRoute,
+  },
+  {
+    path: '/iletisim',
+    route: iletisimRoute,
+  },
+  {
+    path: '/getstats',
+    route: statsRoute,
   },
 ];
 

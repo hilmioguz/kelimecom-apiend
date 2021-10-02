@@ -10,6 +10,7 @@ const createMadde = {
   body: Joi.object().keys({
     madde: Joi.string(),
     whichDict: Joi.array().min(1).items(Joi.object(whichDictSchema)).required(),
+    alttur: Joi.array().items(Joi.string()),
     tur: Joi.array().items(Joi.string()),
     tip: Joi.array().items(Joi.string()),
     koken: Joi.array().items(Joi.string()),
