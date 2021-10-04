@@ -121,7 +121,7 @@ const sendInvitation = async (to, name) => {
 const sendContactMessage = async (message) => {
   const mailOptions = {
     from: 'Kelime.com <kelime@hiperlink.com.tr>',
-    to: `Tarık Eser <tarikeser@gmail.com>`,
+    to: `Kelime.com <kelime@hiperlink.com.tr>`,
     replyTo: 'kelime@hiperlink.com.tr',
     subject: 'Kelime.com sitesi iletişim formu üzerinden gönderilen bir mesajınız var!',
     text: `Gönderilen mesaj içeriği\n\n
