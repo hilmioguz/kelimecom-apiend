@@ -29,10 +29,15 @@ const querySearchstat = async (filter, options) => {
 };
 
 const latestByLang = async (lang, limit = 10) => {
+  const andBlock = [{ isInDict: true }];
+  if (lang !== 'tumu') {
+    andBlock.push({ secilenDil: lang });
+  }
   const stat = await Searchstat.aggregate([
     {
       $match: {
-        secilenDil: lang,
+        $and: andBlock,
+        $or: [{ searchType: 'exact' }, { searchType: 'kelime' }],
       },
     },
     {
@@ -56,10 +61,15 @@ const latestByLang = async (lang, limit = 10) => {
 };
 
 const mostByLang = async (lang, limit = 10) => {
+  const andBlock = [{ isInDict: true }];
+  if (lang !== 'tumu') {
+    andBlock.push({ secilenDil: lang });
+  }
   const stat = await Searchstat.aggregate([
     {
       $match: {
-        secilenDil: lang,
+        $and: andBlock,
+        $or: [{ searchType: 'exact' }, { searchType: 'kelime' }],
       },
     },
     {

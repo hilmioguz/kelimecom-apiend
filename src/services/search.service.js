@@ -391,6 +391,7 @@ const rawQueryKelimeler = async (options) => {
     sort: { maddeLength: 1, langOrder: 1 },
     limit: options.limit,
     page: options.page || 1,
+    searchType,
   };
 
   // eslint-disable-next-line no-console

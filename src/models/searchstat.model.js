@@ -25,6 +25,10 @@ const searchstatSchema = mongoose.Schema(
       type: String,
       default: '',
     },
+    isInDict: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

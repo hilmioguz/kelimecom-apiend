@@ -15,7 +15,7 @@ const aggregatePaginate = (schema) => {
     const pageNumber = parseInt(options.page || 1, 10);
     const resultsPerPage = parseInt(options.limit || 10, 10);
     const skipDocuments = (pageNumber - 1) * resultsPerPage;
-    const { sort } = options;
+    const { sort, searchType } = options;
 
     const q = this.aggregate(aggregate._pipeline);
     const countQuery = this.aggregate(q._pipeline);
@@ -33,13 +33,27 @@ const aggregatePaginate = (schema) => {
       q.skip(skipDocuments).limit(resultsPerPage).exec(),
       countQuery
         .group({
-          _id: null,
+          _id: searchType === 'advanced' ? { _id: null, lang: '$lang' } : null,
           count: { $sum: 1 },
         })
         .exec(),
     ])
       .then(function (values) {
-        const count = values[1][0] ? values[1][0].count : 0;
+        // eslint-disable-next-line no-console
+        console.log('Q:', JSON.stringify(values));
+        let count = null;
+        const lang = [];
+        if (searchType === 'advanced') {
+          count = values[1].reduce((acc, item) => {
+            // eslint-disable-next-line no-return-assign
+            return acc + Number(item.count);
+          }, 0);
+          values[1].forEach((ditem) => {
+            lang.push(ditem._id.lang);
+          });
+        } else {
+          count = values[1][0] ? values[1][0].count : 0;
+        }
 
         const result = {
           data: values[0],
@@ -48,6 +62,7 @@ const aggregatePaginate = (schema) => {
             pages: Math.ceil(count / resultsPerPage) || 1,
             perpage: resultsPerPage,
             total: count,
+            lang,
           },
         };
 

@@ -54,10 +54,10 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   options.searchFilter = req.body.searchFilter;
   options.limit = req.body.limit || 10;
   options.page = req.body.page || 1;
+  const payload = {};
 
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
     let searchedBy = '';
-    const payload = {};
     if (req.user) {
       searchedBy = req.user.id;
     } else {
@@ -68,10 +68,13 @@ const getRawKelimeler = catchAsync(async (req, res) => {
     payload.searchedBy = searchedBy;
     payload.secilenDil = options.searchFilter.dil;
     payload.secilenTip = options.searchFilter.tip;
-    searchstatService.createSearchstat(payload);
   }
 
   const result = await searchService.rawQueryKelimeler(options);
+  if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
+    payload.isInDict = !!(result && result.meta.total > 0);
+    searchstatService.createSearchstat(payload);
+  }
   res.send(result);
 });
 
@@ -93,15 +96,15 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
   const options = {};
   options.searchId = arananId;
   options.searchTerm = aranantext;
-  options.searchType = req.body.type;
+  options.searchType = req.body.type || 'kelime';
   options.searchFilter = req.body.searchFilter;
   options.searchDil = dil;
   options.searchTip = tip;
   options.searchDict = sozluk;
+  const payload = {};
 
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
     let searchedBy = '';
-    const payload = {};
     if (req.user) {
       searchedBy = req.user.id;
     } else {
@@ -113,7 +116,6 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
     payload.secilenDil = dil;
     payload.secilenTip = tip;
     payload.secilenSozluk = sozluk;
-    searchstatService.createSearchstat(payload);
   }
 
   if (req.user) {
@@ -126,6 +128,10 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
   console.log('options:', options);
 
   const madde = await searchService.getKelimeByMadde(options);
+  if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
+    payload.isInDict = !!(madde && madde.meta.total > 0);
+    searchstatService.createSearchstat(payload);
+  }
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
   }
