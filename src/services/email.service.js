@@ -59,7 +59,7 @@ const sendMailNow = async (emailOptions) => {
  */
 const sendResetPasswordEmail = async (to, token) => {
   // replace this url with the link to the reset password page of your front-end app
-  const resetPasswordUrl = `https://test.kelime.com/reset-password?token=${token}`;
+  const resetPasswordUrl = `https://kelime.com/reset-password?token=${token}`;
   const mailOptions = {
     from: 'Kelime.com <kelime@hiperlink.com.tr>',
     to: `${to}<${to}>`,
@@ -81,7 +81,7 @@ const sendResetPasswordEmail = async (to, token) => {
  */
 const sendVerificationEmail = async (to, token) => {
   // replace this url with the link to the email verification page of your front-end app
-  const verificationEmailUrl = `https://test.kelime.com/verify-email?token=${token}`;
+  const verificationEmailUrl = `https://kelime.com/verify-email?token=${token}`;
   const mailOptions = {
     from: 'Kelime.com <kelime@hiperlink.com.tr>',
     to: `${to}<${to}>`,

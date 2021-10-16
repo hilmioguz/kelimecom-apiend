@@ -153,7 +153,7 @@ userSchema.pre('save', async function (next) {
   if (this.isNew) {
     const userdomain = user.email.substring(user.email.lastIndexOf('@') + 1);
     try {
-      const kurumlar = await Kurumlar.find({});
+      const kurumlar = await Kurumlar.find({ isActive: 1 });
       const kurumsalpaket = await Packets.find({ role: 'kurumsal' });
       const standartpaket = await Packets.find({ role: 'standart' });
       const emailMatch = kurumlar.filter((kurum) => kurum.mail_suffix === userdomain);

@@ -383,7 +383,7 @@ const rawQueryKelimeler = async (options) => {
 
   // condition.push({ allowDiskUse: true });
   // eslint-disable-next-line no-console
-  console.log('final condition:', JSON.stringify(condition));
+  // console.log('final condition:', JSON.stringify(condition));
 
   const agg = Madde.aggregate(condition).allowDiskUse(true);
 
@@ -399,7 +399,7 @@ const rawQueryKelimeler = async (options) => {
   const maddeler = await Madde.aggregatePaginate(agg, suboptions, (err, results) => {
     if (err) {
       // eslint-disable-next-line no-console
-      console.log('ERROR_____>:', err);
+      // console.log('ERROR_____>:', err);
       return err;
     }
     return results;

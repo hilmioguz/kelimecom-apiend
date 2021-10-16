@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
-
+const { emailService } = require('.');
 /**
  * Create a user
  * @param {Object} userBody
@@ -46,6 +46,7 @@ const createGoogleUser = async (profile) => {
       const user = await User.create(payload);
       // eslint-disable-next-line no-console
       console.log('GOOGLE USER CREATED:');
+      emailService.sendWelcomeEmail(user.email, user.name);
       return user;
     } catch (error) {
       const user = await User.findOne({ email: payload.email });

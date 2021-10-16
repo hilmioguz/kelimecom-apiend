@@ -40,7 +40,7 @@ const aggregatePaginate = (schema) => {
     ])
       .then(function (values) {
         // eslint-disable-next-line no-console
-        console.log('Q:', JSON.stringify(values));
+        // console.log('Q:', JSON.stringify(values));
         let count = null;
         const lang = [];
         if (searchType === 'advanced') {

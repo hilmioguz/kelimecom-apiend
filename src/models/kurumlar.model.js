@@ -30,6 +30,10 @@ const kurumlarSchema = mongoose.Schema(
     isActive: {
       type: Boolean,
     },
+    status: {
+      type: String,
+      default: '',
+    },
     logoImage: {
       type: String,
     },

@@ -1,8 +1,11 @@
 const httpStatus = require('http-status');
 const assert = require('assert');
+const mongoose = require('mongoose');
 const { Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
 
+// eslint-disable-next-line no-unused-vars
+const { ObjectId } = mongoose.Types;
 /**
  * Create a madde
  * @param {Object} maddeBody
@@ -69,6 +72,7 @@ const rawQueryMaddeler = async (madde) => {
       },
     },
   ];
+  // eslint-disable-next-line no-unused-vars
   const maddeler = await Madde.aggregate(agg, (cmdErr, result) => {
     assert.equal(null, cmdErr);
   });
@@ -126,6 +130,50 @@ const deleteMaddeById = async (maddeId) => {
   await madde.remove();
   return madde;
 };
+const userMaddeFavorites = async (id, anlamId, userId, method) => {
+  let sonuc = null;
+  if (method === 'insert') {
+    sonuc = await Madde.updateOne(
+      { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
+      { $push: { 'whichDict.$.favorites': ObjectId(userId) } },
+      { new: true, upsert: true }
+    );
+  }
+  if (method === 'delete') {
+    sonuc = await Madde.updateOne(
+      { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
+      { $pull: { 'whichDict.$.favorites': ObjectId(userId) } },
+      { new: true, upsert: true }
+    );
+  }
+  if (sonuc) {
+    return true;
+  }
+  return false;
+};
+
+const userMaddeLikes = async (id, anlamId, userId, method) => {
+  let sonuc = null;
+  if (method === 'insert') {
+    sonuc = await Madde.updateOne(
+      { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
+      { $push: { 'whichDict.$.likes': ObjectId(userId) }},
+      { new: true, upsert: true }
+    );
+  }
+  if (method === 'delete') {
+    sonuc = await Madde.updateOne(
+      { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
+      { $pull: { 'whichDict.$.likes': ObjectId(userId) } },
+      { new: true, upsert: true }
+    );
+  }
+
+  if (sonuc) {
+    return true;
+  }
+  return false;
+};
 
 module.exports = {
   createMadde,
@@ -135,4 +183,6 @@ module.exports = {
   getMaddeByName,
   updateMaddeById,
   deleteMaddeById,
+  userMaddeFavorites,
+  userMaddeLikes,
 };

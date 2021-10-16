@@ -52,7 +52,7 @@ const prefilter = (req, allowedfields) => {
     }
   }
   // eslint-disable-next-line no-console
-  console.log('filter:', filter, 'options:', options);
+  // console.log('filter:', filter, 'options:', options);
   return { filter, options };
 };
 

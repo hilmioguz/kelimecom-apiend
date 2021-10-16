@@ -47,6 +47,24 @@ const deleteMadde = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const userMaddeFavorites = catchAsync(async (req, res) => {
+  if (req.user) {
+    const madde = await maddeService.userMaddeFavorites(req.body.maddeId, req.body.anlamId, req.user.id, req.body.method);
+    res.send(madde);
+  } else {
+    throw new ApiError(httpStatus.NETWORK_AUTHENTICATION_REQUIRED, 'Not authorized. You must login first!');
+  }
+});
+
+const userMaddeLikes = catchAsync(async (req, res) => {
+  if (req.user) {
+    const madde = await maddeService.userMaddeLikes(req.body.maddeId, req.body.anlamId, req.user.id, req.body.method);
+    res.send(madde);
+  } else {
+    throw new ApiError(httpStatus.NETWORK_AUTHENTICATION_REQUIRED, 'Not authorized. You must login first!');
+  }
+});
+
 module.exports = {
   createMadde,
   getMaddeler,
@@ -55,4 +73,6 @@ module.exports = {
   getMaddeByName,
   updateMadde,
   deleteMadde,
+  userMaddeFavorites,
+  userMaddeLikes,
 };

@@ -57,6 +57,22 @@ const updateMadde = {
     .min(1),
 };
 
+const userMaddeFavorites = {
+  body: Joi.object().keys({
+    maddeId: Joi.string().required().custom(objectId),
+    anlamId: Joi.string().required().custom(objectId),
+    method: Joi.string().required(),
+  }),
+};
+
+const userMaddeLikes = {
+  body: Joi.object().keys({
+    maddeId: Joi.string().required().custom(objectId),
+    anlamId: Joi.string().required().custom(objectId),
+    method: Joi.string().required(),
+  }),
+};
+
 const deleteMadde = {
   params: Joi.object().keys({
     maddeId: Joi.string().custom(objectId),
@@ -70,4 +86,6 @@ module.exports = {
   getMaddeByName,
   updateMadde,
   deleteMadde,
+  userMaddeFavorites,
+  userMaddeLikes,
 };

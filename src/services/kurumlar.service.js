@@ -25,6 +25,8 @@ const createKurum = async (kurumBody) => {
  * @returns {Promise<QueryResult>}
  */
 const queryKurumlar = async (filter, options) => {
+  // eslint-disable-next-line no-console
+  console.log('FİLTER:', filter);
   const kurums = await Kurumlar.paginate(filter, options);
   return kurums;
 };
@@ -36,6 +38,14 @@ const queryKurumlar = async (filter, options) => {
  */
 const getKurumById = async (id) => {
   return Kurumlar.findById(id);
+};
+/**
+ * Get aktive kurums
+ * @param {ObjectId} id
+ * @returns {Promise<Kurumlars>}
+ */
+const getKurumAktive = async () => {
+  return Kurumlar.find({ isActive: true });
 };
 
 /**
@@ -83,6 +93,7 @@ const deleteKurumById = async (kurumId) => {
 module.exports = {
   createKurum,
   queryKurumlar,
+  getKurumAktive,
   getKurumById,
   getKurumByName,
   updateKurumById,

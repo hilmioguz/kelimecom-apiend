@@ -12,6 +12,13 @@ const createKurum = {
   }),
 };
 
+const queryKurumlar = {
+  query: Joi.object().keys({
+    sortBy: Joi.string(),
+    limit: Joi.number().integer(),
+    page: Joi.number().integer(),
+  }),
+};
 const getKurumlar = {
   query: Joi.object().keys({
     sortBy: Joi.string(),
@@ -19,7 +26,6 @@ const getKurumlar = {
     page: Joi.number().integer(),
   }),
 };
-
 const getKurumByName = {
   params: Joi.object().keys({
     institution_name: Joi.string(),
@@ -52,6 +58,7 @@ const deleteKurum = {
 module.exports = {
   createKurum,
   getKurumlar,
+  queryKurumlar,
   getKurumById,
   getKurumByName,
   updateKurum,

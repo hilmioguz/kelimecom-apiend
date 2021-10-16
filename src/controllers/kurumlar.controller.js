@@ -9,9 +9,16 @@ const createKurum = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(kurumlar);
 });
 
-const getKurumlar = catchAsync(async (req, res) => {
+const queryKurumlar = catchAsync(async (req, res) => {
   const { filter, options } = prefilter(req, ['name']);
   const result = await kurumlarService.queryKurumlar(filter, options);
+  res.send(result);
+});
+
+const getKurumlar = catchAsync(async (req, res) => {
+  const result = await kurumlarService.getKurumAktive();
+  // eslint-disable-next-line no-console
+  // console.log(`RESUL KURUMLAR: ${JSON.stringify(result)}`);
   res.send(result);
 });
 
@@ -44,6 +51,7 @@ const deleteKurum = catchAsync(async (req, res) => {
 module.exports = {
   createKurum,
   getKurumlar,
+  queryKurumlar,
   getKurumById,
   getKurumByName,
   updateKurum,

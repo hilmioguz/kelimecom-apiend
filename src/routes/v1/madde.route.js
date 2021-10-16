@@ -17,6 +17,14 @@ router
   .patch(auth('manageMadde'), validate(maddeValidation.updateMadde), maddeController.updateMadde)
   .delete(auth('manageMadde'), validate(maddeValidation.deleteMadde), maddeController.deleteMadde);
 
+router
+  .route('/userfav')
+  .post(auth('manageProfile'), validate(maddeValidation.userMaddeFavorites), maddeController.userMaddeFavorites);
+
+router
+  .route('/userlikes')
+  .post(auth('manageProfile'), validate(maddeValidation.userMaddeLikes), maddeController.userMaddeLikes);
+
 module.exports = router;
 
 /**

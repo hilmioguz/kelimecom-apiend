@@ -9,7 +9,7 @@ const router = express.Router();
 router
   .route('/')
   .post(auth('manageKurumlar'), validate(kurumlarValidation.createKurum), kurumlarController.createKurum)
-  .get(auth('freeZone'), validate(kurumlarValidation.getKurumlar), kurumlarController.getKurumlar);
+  .get(auth('freeZone'), kurumlarController.getKurumlar);
 
 router
   .route('/:kurumId')

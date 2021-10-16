@@ -121,6 +121,18 @@ const maddeSchema = mongoose.Schema(
             type: String,
           },
         ],
+        likes: [
+          {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+          },
+        ],
+        favorites: [
+          {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+          },
+        ],
       },
     ],
   },

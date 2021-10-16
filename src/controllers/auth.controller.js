@@ -26,7 +26,6 @@ const registerGoogle = catchAsync(async (req, res) => {
   payload.clientIp = req.clientIp;
   const user = await userService.createGoogleUser(req.body);
   const tokens = await tokenService.generateAuthTokens(user);
-  emailService.sendWelcomeEmail(req.body.email, req.body.name);
   res.status(httpStatus.CREATED).send({ user, tokens });
 });
 
