@@ -1,8 +1,9 @@
 const allRoles = {
   guest: ['freeZone'],
-  user: ['freeZone', 'getProfile', 'manageProfile'],
-  moderater: ['freeZone', 'getMadde', 'manageMadde', 'getDictionaries', 'manageDictionaries'], // TODO: only manage own properties
+  user: ['freeZone', 'authorized', 'getProfile', 'manageProfile'],
+  moderater: ['freeZone', 'authorized', 'getMadde', 'manageMadde', 'getDictionaries', 'manageDictionaries'], // TODO: only manage own properties
   admin: [
+    'authorized',
     'freeZone',
     'getUsers',
     'manageUsers',

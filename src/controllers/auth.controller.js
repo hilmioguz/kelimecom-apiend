@@ -64,6 +64,11 @@ const resetPassword = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const editPassword = catchAsync(async (req, res) => {
+  await authService.editPassword(req.body.token, req.body.password);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 const verifyEmail = catchAsync(async (req, res) => {
   await authService.verifyEmail(req.body.token);
   res.status(httpStatus.NO_CONTENT).send();
@@ -79,4 +84,5 @@ module.exports = {
   resetPassword,
   sendVerificationEmail,
   verifyEmail,
+  editPassword,
 };

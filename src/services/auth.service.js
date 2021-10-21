@@ -84,6 +84,21 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, `Şifre sıfırlama başarısız oldu: ${error.message}`);
   }
 };
+const editPassword = async (token, newPassword) => {
+  try {
+    const editPasswordTokenDoc = await tokenService.verifyToken(token, tokenTypes.REFRESH);
+    // eslint-disable-next-line no-console
+    // console.log('resetPasswordTokenDoc:', resetPasswordTokenDoc);
+    const user = await userService.getUserById(editPasswordTokenDoc.user);
+    if (!user) {
+      throw new Error();
+    }
+    await userService.updateUserById(user.id, { password: newPassword });
+  } catch (error) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, `Şifre sıfırlama başarısız oldu: ${error.message}`);
+  }
+};
+
 /**
  * Verify email
  * @param {string} verifyEmailToken
@@ -110,4 +125,5 @@ module.exports = {
   refreshAuth,
   resetPassword,
   verifyEmail,
+  editPassword,
 };

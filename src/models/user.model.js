@@ -75,6 +75,12 @@ const userSchema = mongoose.Schema(
       default: ObjectId('615275545535851845375bf3'), // standard paket id in db
       autopopulate: true,
     },
+    kurumId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Kurumlar',
+      default: null, // standard paket id in db
+      autopopulate: true,
+    },
     customPacketId: {
       type: Schema.Types.ObjectId,
       ref: 'Custompackets',
@@ -83,6 +89,14 @@ const userSchema = mongoose.Schema(
     },
     clientIp: {
       type: String,
+      default: null,
+    },
+    paketBegin: {
+      type: Date,
+      default: Date.now,
+    },
+    paketEnd: {
+      type: Date,
       default: null,
     },
   },
