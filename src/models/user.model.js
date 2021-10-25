@@ -175,6 +175,7 @@ userSchema.pre('save', async function (next) {
       // console.log('emailMatch:', emailMatch);
       if (emailMatch && emailMatch.length) {
         user.packetId = ObjectId(kurumsalpaket[0]._id);
+        user.kurumId = ObjectId(emailMatch[0]._id);
       } else if (user.clientIp) {
         const ip = storeIP(user.clientIp);
         if (isV4(ip)) {
@@ -183,6 +184,7 @@ userSchema.pre('save', async function (next) {
           // console.log('imatch:', ipMatch);
           if (ipMatch && ipMatch.length) {
             user.packetId = ObjectId(kurumsalpaket[0]._id);
+            user.kurumId = ObjectId(ipMatch[0]._id);
           }
         }
       } else {
