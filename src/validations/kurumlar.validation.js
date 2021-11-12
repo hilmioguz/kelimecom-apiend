@@ -7,8 +7,15 @@ const createKurum = {
     cidr: Joi.array(),
     isActive: Joi.boolean(),
     mail_suffix: Joi.string(),
-    beginDate: Joi.date(),
-    endDate: Joi.date(),
+    beginDate: Joi.date().optional(),
+    endDate: Joi.date().optional(),
+    address: Joi.string().optional(),
+    contact: Joi.string().optional(),
+    contactEmail: Joi.string().optional(),
+    ipBlockRef: Joi.string().optional(),
+    logoImage: Joi.string().optional(),
+    phone: Joi.string().optional(),
+    status: Joi.string().optional(),
   }),
 };
 
@@ -45,6 +52,18 @@ const updateKurum = {
   body: Joi.object()
     .keys({
       institution_name: Joi.string(),
+      cidr: Joi.array(),
+      isActive: Joi.boolean(),
+      mail_suffix: Joi.string(),
+      beginDate: Joi.date().optional(),
+      endDate: Joi.date().optional(),
+      address: Joi.string().optional(),
+      contact: Joi.string().optional(),
+      contactEmail: Joi.string().optional(),
+      ipBlockRef: Joi.string().optional(),
+      logoImage: Joi.string().optional(),
+      phone: Joi.string().optional(),
+      status: Joi.string().optional(),
     })
     .min(1),
 };

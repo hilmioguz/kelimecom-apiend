@@ -1,6 +1,8 @@
 module.exports.authValidation = require('./auth.validation');
 module.exports.userValidation = require('./user.validation');
 module.exports.maddeValidation = require('./madde.validation');
+module.exports.blogValidation = require('./blog.validation');
+module.exports.gundemValidation = require('./gundem.validation');
 module.exports.packetValidation = require('./packets.validation');
 module.exports.kurumValidation = require('./kurumlar.validation');
 module.exports.customPacketValidation = require('./custompackets.validation');

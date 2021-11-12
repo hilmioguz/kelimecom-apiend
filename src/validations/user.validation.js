@@ -11,8 +11,15 @@ const createUser = {
       otherwise: Joi.string().required().custom(password),
     }),
     name: Joi.string().required(),
-    role: Joi.string().required().valid('user', 'admin'),
+    role: Joi.string().required().valid('user', 'moderater', 'admin'),
     clientIp: Joi.string().optional(),
+    picture: Joi.string().empty().optional(),
+    isEmailVerified: Joi.boolean().optional(),
+    isActive: Joi.boolean().optional(),
+    paketBegin: Joi.string().optional(),
+    paketEnd: Joi.string().optional(),
+    kurumId: Joi.string().custom(objectId),
+    packetId: Joi.string().custom(objectId),
   }),
 };
 
@@ -38,7 +45,15 @@ const updateUser = {
     .keys({
       email: Joi.string().email(),
       password: Joi.string().custom(password),
-      name: Joi.string(),
+      name: Joi.string().optional(),
+      role: Joi.string().optional(),
+      picture: Joi.string().optional(),
+      isEmailVerified: Joi.boolean().optional(),
+      isActive: Joi.boolean().optional(),
+      paketBegin: Joi.string().optional(),
+      paketEnd: Joi.string().optional(),
+      kurumId: Joi.string().custom(objectId),
+      packetId: Joi.string().custom(objectId),
     })
     .min(1),
 };

@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const { Searchstat } = require('../models');
+const { Searchstat, User, Gundem, Kurumlar, Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 /**
@@ -94,9 +94,216 @@ const mostByLang = async (lang, limit = 10) => {
   ]);
   return stat;
 };
+
+const lastAddedGundem = async (lang = null, limit = 10) => {
+  const agg = [
+    {
+      $lookup: {
+        from: 'dictionaries',
+        localField: 'whichDict.dictId',
+        foreignField: '_id',
+        as: 'dict',
+      },
+    },
+    {
+      $unwind: {
+        path: '$dict',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        madde: 1,
+        dict: '$dict.anlamLang',
+      },
+    },
+  ];
+
+  if (lang) {
+    agg.push({
+      $match: {
+        dict: lang,
+      },
+    });
+  }
+
+  agg.push(
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    {
+      $limit: limit,
+    },
+    {
+      $project: {
+        madde: 1,
+        _id: 0,
+      },
+    }
+  );
+
+  const stat = await Gundem.aggregate(agg);
+  return stat;
+};
+
+const allStats = async () => {
+  const useragg = [
+    {
+      $group: {
+        _id: '$packetId',
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $lookup: {
+        from: 'packets',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'paket',
+      },
+    },
+    {
+      $unwind: {
+        path: '$paket',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        paketadi: '$paket.name',
+      },
+    },
+    {
+      $unset: ['paket', '_id'],
+    },
+  ];
+  const userstat = await User.aggregate(useragg);
+
+  const gundemuseragg = [
+    {
+      $group: {
+        _id: '$whichDict.userSubmitted',
+        maddeler: {
+          $addToSet: '$madde',
+        },
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $unwind: {
+        path: '$_id',
+        preserveNullAndEmptyArrays: false,
+      },
+    },
+    {
+      $sort: {
+        count: -1,
+      },
+    },
+    {
+      $limit: 5,
+    },
+    {
+      $project: {
+        maddeler: {
+          $slice: ['$maddeler', -3],
+        },
+        count: 1,
+      },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'name',
+      },
+    },
+    {
+      $unwind: {
+        path: '$name',
+        preserveNullAndEmptyArrays: false,
+      },
+    },
+    {
+      $addFields: {
+        name: '$name.name',
+        kurumu: '$name.kurumId',
+      },
+    },
+    {
+      $lookup: {
+        from: 'kurumlar',
+        localField: 'kurumu',
+        foreignField: '_id',
+        as: 'kurumu',
+      },
+    },
+    {
+      $unwind: {
+        path: '$kurumu',
+        preserveNullAndEmptyArrays: false,
+      },
+    },
+    {
+      $addFields: {
+        kurumu: '$kurumu.institution_name',
+      },
+    },
+    {
+      $unset: ['_id'],
+    },
+  ];
+  const gundemstat = await Gundem.aggregate(gundemuseragg);
+  const kurumagg = [
+    {
+      $group: {
+        _id: {
+          aktif: '$isActive',
+          status: '$status',
+        },
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+    {
+      $project: {
+        aktif: '$_id.aktif',
+        status: '$_id.status',
+        count: 1,
+        _id: 0,
+      },
+    },
+  ];
+  const kurumstat = await Kurumlar.aggregate(kurumagg);
+  const maddeagg = [
+    {
+      $count: 'count',
+    },
+  ];
+  const totalMaddestat = await Madde.aggregate(maddeagg);
+
+  const gundemagg = [
+    {
+      $count: 'count',
+    },
+  ];
+  const totalGundemstat = await Gundem.aggregate(gundemagg);
+
+  return { userstat, gundemstat, kurumstat, totalMaddestat, totalGundemstat };
+};
 module.exports = {
   createSearchstat,
   querySearchstat,
   latestByLang,
   mostByLang,
+  allStats,
+  lastAddedGundem,
 };

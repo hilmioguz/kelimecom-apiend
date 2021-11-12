@@ -10,7 +10,7 @@ const createUser = catchAsync(async (req, res) => {
 });
 
 const getUsers = catchAsync(async (req, res) => {
-  const { filter, options } = prefilter(req, ['name', 'role']);
+  const { filter, options } = prefilter(req, ['name', 'role', 'packetId']);
   const result = await userService.queryUsers(filter, options);
   res.send(result);
 });

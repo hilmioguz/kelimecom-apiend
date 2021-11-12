@@ -9,6 +9,11 @@ const createMadde = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(madde);
 });
 
+const createSubMadde = catchAsync(async (req, res) => {
+  const madde = await maddeService.createSubMadde(req.params.maddeId, req.body);
+  res.status(httpStatus.CREATED).send(madde);
+});
+
 const getMaddeler = catchAsync(async (req, res) => {
   const { filter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet']);
   const result = await maddeService.queryMaddeler(filter, options);
@@ -42,8 +47,18 @@ const updateMadde = catchAsync(async (req, res) => {
   res.send(madde);
 });
 
+const updateSubMadde = catchAsync(async (req, res) => {
+  const madde = await maddeService.updateSubMaddeById(req.params.maddeId, req.body);
+  res.send(madde);
+});
+
 const deleteMadde = catchAsync(async (req, res) => {
   await maddeService.deleteMaddeById(req.params.maddeId);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
+const deleteSubMadde = catchAsync(async (req, res) => {
+  await maddeService.deleteSubMaddeById(req.params.maddeId, req.params.anlamId);
   res.status(httpStatus.NO_CONTENT).send();
 });
 
@@ -67,12 +82,15 @@ const userMaddeLikes = catchAsync(async (req, res) => {
 
 module.exports = {
   createMadde,
+  createSubMadde,
   getMaddeler,
   getRawMaddeler,
   getMaddeById,
   getMaddeByName,
   updateMadde,
+  updateSubMadde,
   deleteMadde,
+  deleteSubMadde,
   userMaddeFavorites,
   userMaddeLikes,
 };

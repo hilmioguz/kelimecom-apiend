@@ -1,5 +1,15 @@
+const mongoose = require('mongoose');
 const pick = require('./pick');
 
+const { ObjectId } = mongoose.Types;
+
+const isValidObjectId = (id) => {
+  if (ObjectId.isValid(id)) {
+    if (String(new ObjectId(id)) === id) return true;
+    return false;
+  }
+  return false;
+};
 /**
  * Create an prefiltered formatted object composed of the picked object properties
  * @param {Object} req
@@ -23,7 +33,7 @@ const prefilter = (req, allowedfields) => {
   const qoption = {
     sortBy: sortby || '',
     // eslint-disable-next-line no-nested-ternary
-    limit: q.perpage ? q.perpage : q.itemsPerPage ? Number(q.itemsPerPage) : 10,
+    limit: q.perpage ? q.perpage : q.itemsPerPage ? (Number(q.itemsPerPage) < 0 ? null : Number(q.itemsPerPage)) : 10,
     page: q.page ? Number(q.page) : 1,
   };
 
@@ -37,12 +47,20 @@ const prefilter = (req, allowedfields) => {
       options.type = 'textSearch';
     } else if (picked.searchTerm && picked.searchField) {
       const keyim = picked.searchField;
-      filter = {
-        [keyim]: {
-          $regex: picked.searchTerm,
-          $options: 'i',
-        },
-      };
+      if (isValidObjectId(picked.searchTerm)) {
+        // eslint-disable-next-line no-console
+        console.log('BUDRDAYIZZZ');
+        filter = {
+          [keyim]: ObjectId(picked.searchTerm),
+        };
+      } else {
+        filter = {
+          [keyim]: {
+            $regex: picked.searchTerm,
+            $options: 'i',
+          },
+        };
+      }
     } else if (picked.searchTerm && allowedfields) {
       filter = {
         $or: allowedfields.map((obj) => ({
@@ -52,7 +70,7 @@ const prefilter = (req, allowedfields) => {
     }
   }
   // eslint-disable-next-line no-console
-  // console.log('filter:', filter, 'options:', options);
+  console.log('filter:', filter, 'options:', options);
   return { filter, options };
 };
 

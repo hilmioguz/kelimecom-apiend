@@ -8,7 +8,7 @@ const ApiError = require('../utils/ApiError');
  * @returns {Promise<Kurumlar>}
  */
 const createKurum = async (kurumBody) => {
-  if (await Kurumlar.isKurumAlrearyInDB(kurumBody.name)) {
+  if (await Kurumlar.isKurumAlrearyInDB(kurumBody.institution_name)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Kurumlar zaten tanımlı');
   }
   const kurum = await Kurumlar.create(kurumBody);

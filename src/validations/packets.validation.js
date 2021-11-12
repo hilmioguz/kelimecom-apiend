@@ -3,8 +3,15 @@ const { objectId } = require('./custom.validation');
 
 const createPacket = {
   body: Joi.object().keys({
-    name: Joi.string(),
-    isActive: Joi.boolean(),
+    name: Joi.string().required(),
+    role: Joi.string().required(),
+    maddebasi: Joi.object().keys({ limitlessCount: Joi.number(), limitLater: Joi.number() }),
+    cekim: Joi.object().keys({ limitlessCount: Joi.number(), limitLater: Joi.number() }),
+    anlam: Joi.object().keys({ limitlessCount: Joi.number(), limitLater: Joi.number() }),
+    dictLimit: Joi.number(),
+    allowedDicts: Joi.array(),
+    langLimit: Joi.number(),
+    allowedLangs: Joi.array(),
   }),
 };
 
@@ -35,8 +42,15 @@ const updatePacket = {
   }),
   body: Joi.object()
     .keys({
-      name: Joi.string(),
-      isActive: Joi.boolean(),
+      name: Joi.string().required(),
+      role: Joi.string().required(),
+      maddebasi: Joi.object().keys({ limitlessCount: Joi.number(), limitLater: Joi.number() }),
+      cekim: Joi.object().keys({ limitlessCount: Joi.number(), limitLater: Joi.number() }),
+      anlam: Joi.object().keys({ limitlessCount: Joi.number(), limitLater: Joi.number() }),
+      dictLimit: Joi.number(),
+      allowedDicts: Joi.array(),
+      langLimit: Joi.number(),
+      allowedLangs: Joi.array(),
     })
     .min(1),
 };

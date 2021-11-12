@@ -1,30 +1,16 @@
 const httpStatus = require('http-status');
 const assert = require('assert');
 const mongoose = require('mongoose');
-const { Madde } = require('../models');
+const { Gundem } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 // eslint-disable-next-line no-unused-vars
 const { ObjectId } = mongoose.Types;
-/**
- * Create a madde
- * @param {Object} maddeBody
- * @returns {Promise<Madde>}
- */
-const createMadde = async (maddeBody) => {
-  if (await Madde.isMaddeAlrearyInDB(maddeBody.madde)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Madde zaten tanımlı');
-  }
-  const madde = await Madde.create(maddeBody);
-  return madde;
-};
 
 const createSubMadde = async (maddeId, maddeBody) => {
-  const madde = await Madde.updateOne(
-    { _id: ObjectId(maddeId) },
-    { $push: { whichDict: maddeBody } },
-    { new: true, upsert: true }
-  );
+  const newmadde = maddeBody;
+  newmadde.id = new ObjectId();
+  const madde = await Gundem.updateOne({ _id: ObjectId(maddeId) }, { $push: { whichDict: newmadde } }, { new: true });
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde anlamı eklenemedi.');
   }
@@ -44,9 +30,9 @@ const createSubMadde = async (maddeId, maddeBody) => {
 const queryMaddeler = async (filter, options) => {
   let maddeler;
   if (options.type && options.type === 'searchText') {
-    maddeler = await Madde.find(filter, { score: { $meta: 'textScore' } }).sort({ score: { $meta: 'textScore' } });
+    maddeler = await Gundem.find(filter, { score: { $meta: 'textScore' } }).sort({ score: { $meta: 'textScore' } });
   } else {
-    maddeler = await Madde.paginate(filter, options);
+    maddeler = await Gundem.paginate(filter, options);
   }
   return maddeler;
 };
@@ -86,7 +72,7 @@ const rawQueryMaddeler = async (madde) => {
     },
   ];
   // eslint-disable-next-line no-unused-vars
-  const maddeler = await Madde.aggregate(agg, (cmdErr, result) => {
+  const maddeler = await Gundem.aggregate(agg, (cmdErr, result) => {
     assert.equal(null, cmdErr);
   });
 
@@ -99,7 +85,7 @@ const rawQueryMaddeler = async (madde) => {
  * @returns {Promise<Madde>}
  */
 const getMaddeById = async (id) => {
-  return Madde.findById(id);
+  return Gundem.findById(id);
 };
 
 /**
@@ -108,7 +94,7 @@ const getMaddeById = async (id) => {
  * @returns {Promise<Madde>}
  */
 const getMaddeByName = async (madde) => {
-  return Madde.findOne({ madde });
+  return Gundem.findOne({ madde });
 };
 
 /**
@@ -122,7 +108,7 @@ const updateMaddeById = async (maddeId, updateBody) => {
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
   }
-  if (updateBody.madde && (await Madde.isMaddeAlrearyInDB(updateBody.madde, maddeId))) {
+  if (updateBody.madde && (await Gundem.isMaddeAlrearyInDB(updateBody.madde, maddeId))) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Madde zaten daha önce kayıtlı');
   }
   Object.assign(madde, updateBody);
@@ -131,7 +117,7 @@ const updateMaddeById = async (maddeId, updateBody) => {
 };
 
 const updateSubMaddeById = async (maddeId, updateBody) => {
-  const madde = await Madde.updateOne(
+  const madde = await Gundem.updateOne(
     { _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) },
     {
       $set: {
@@ -152,6 +138,10 @@ const updateSubMaddeById = async (maddeId, updateBody) => {
         'whichDict.$.zitanlam': updateBody.zitanlam,
         'whichDict.$.esanlam': updateBody.esanlam,
         'whichDict.$.telaffuz': updateBody.telaffuz,
+        'whichDict.$.isActive': updateBody.isActive,
+        'whichDict.$.userConfirmed': updateBody.userConfirmed,
+        'whichDict.$.userSubmitted': updateBody.userSubmitted,
+        'whichDict.$.updatedAt': Date.now(),
       },
     },
     { upsert: true }
@@ -162,14 +152,36 @@ const updateSubMaddeById = async (maddeId, updateBody) => {
 
   return madde;
 };
-
+/**
+ * Create a madde
+ * @param {Object} maddeBody
+ * @returns {Promise<Madde>}
+ */
+const createMadde = async (maddeBody) => {
+  const found = await Gundem.findOne({ madde: maddeBody.madde });
+  let madde;
+  if (found) {
+    // eslint-disable-next-line no-console
+    console.log('Madde:---Z', found._id);
+    const payload = maddeBody.whichDict;
+    // eslint-disable-next-line no-console
+    console.log('Madde:---eewe', payload);
+    madde = await createSubMadde(found._id, payload);
+  } else {
+    madde = await Gundem.create(maddeBody);
+  }
+  // if (await Gundem.isMaddeAlrearyInDB(maddeBody.madde)) {
+  //   throw new ApiError(httpStatus.BAD_REQUEST, 'Madde zaten tanımlı');
+  // }
+  return madde;
+};
 /**
  * Delete madde by id
  * @param {ObjectId} maddeId
  * @returns {Promise<Madde>}
  */
 const deleteMaddeById = async (maddeId) => {
-  const madde = await Madde.deleteOne({ _id: maddeId });
+  const madde = await Gundem.deleteOne({ _id: maddeId });
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
   }
@@ -177,10 +189,10 @@ const deleteMaddeById = async (maddeId) => {
 };
 
 const deleteSubMaddeById = async (maddeId, anlamId) => {
-  const madde = await Madde.updateOne(
+  const madde = await Gundem.updateOne(
     { _id: ObjectId(maddeId), 'whichDict.id': ObjectId(anlamId) },
     { $pull: { whichDict: { id: ObjectId(anlamId) } } },
-    { new: true, upsert: true }
+    { upsert: true }
   );
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
@@ -192,14 +204,14 @@ const deleteSubMaddeById = async (maddeId, anlamId) => {
 const userMaddeFavorites = async (id, anlamId, userId, method) => {
   let sonuc = null;
   if (method === 'insert') {
-    sonuc = await Madde.updateOne(
+    sonuc = await Gundem.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
       { $push: { 'whichDict.$.favorites': ObjectId(userId) } },
       { new: true, upsert: true }
     );
   }
   if (method === 'delete') {
-    sonuc = await Madde.updateOne(
+    sonuc = await Gundem.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
       { $pull: { 'whichDict.$.favorites': ObjectId(userId) } },
       { new: true, upsert: true }
@@ -214,14 +226,14 @@ const userMaddeFavorites = async (id, anlamId, userId, method) => {
 const userMaddeLikes = async (id, anlamId, userId, method) => {
   let sonuc = null;
   if (method === 'insert') {
-    sonuc = await Madde.updateOne(
+    sonuc = await Gundem.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
       { $push: { 'whichDict.$.likes': ObjectId(userId) } },
       { new: true, upsert: true }
     );
   }
   if (method === 'delete') {
-    sonuc = await Madde.updateOne(
+    sonuc = await Gundem.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
       { $pull: { 'whichDict.$.likes': ObjectId(userId) } },
       { new: true, upsert: true }

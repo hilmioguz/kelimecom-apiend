@@ -4,6 +4,7 @@ const { objectId } = require('./custom.validation');
 const whichDictSchema = {
   anlam: Joi.string(),
   dictId: Joi.required().custom(objectId),
+  digeryazim: Joi.string().empty().optional(),
   digerMaddeId: Joi.custom(objectId).optional(),
   karsiMaddeId: Joi.custom(objectId).optional(),
   alttur: Joi.array().items(Joi.string()).optional(),
@@ -19,6 +20,10 @@ const whichDictSchema = {
   zitanlam: Joi.array().items(Joi.string()).optional(),
   esanlam: Joi.array().items(Joi.string()).optional(),
   telaffuz: Joi.array().items(Joi.string()).optional(),
+  userSubmitted: Joi.required().custom(objectId),
+  userConfirmed: Joi.string().custom(objectId).optional(),
+  isCheckedOutToMadde: Joi.boolean().optional(),
+  isActive: Joi.boolean().optional(),
 };
 
 const createMadde = {
@@ -99,6 +104,10 @@ const updateSubMadde = {
     zitanlam: Joi.array().items(Joi.string()).optional(),
     esanlam: Joi.array().items(Joi.string()).optional(),
     telaffuz: Joi.array().items(Joi.string()).optional(),
+    userSubmitted: Joi.required().custom(objectId),
+    userConfirmed: Joi.string().custom(objectId).optional(),
+    isCheckedOutToMadde: Joi.boolean().optional(),
+    isActive: Joi.boolean().optional(),
   }),
 };
 

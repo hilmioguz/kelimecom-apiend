@@ -93,7 +93,7 @@ const userSchema = mongoose.Schema(
     },
     paketBegin: {
       type: Date,
-      default: Date.now,
+      default: null,
     },
     paketEnd: {
       type: Date,
