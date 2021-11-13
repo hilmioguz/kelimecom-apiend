@@ -20,6 +20,11 @@ const createSubMadde = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(madde);
 });
 
+const mergeSubMadde = catchAsync(async (req, res) => {
+  const madde = await gundemService.mergeSubMadde(req.params.maddeId, req.body);
+  res.status(httpStatus.CREATED).send(madde);
+});
+
 const getMaddeler = catchAsync(async (req, res) => {
   const { filter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet']);
   const result = await gundemService.queryMaddeler(filter, options);
@@ -28,8 +33,6 @@ const getMaddeler = catchAsync(async (req, res) => {
 
 const getMaddeAll = catchAsync(async (req, res) => {
   const { zfilter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet', 'isActive']);
-  // eslint-disable-next-line no-console
-  console.log('filter:', JSON.stringify(zfilter));
   let filter = {};
   if (zfilter) {
     filter = zfilter;
@@ -44,8 +47,6 @@ const getMaddeAll = catchAsync(async (req, res) => {
 
 const getMaddeDun = catchAsync(async (req, res) => {
   const { zfilter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet', 'isActive']);
-  // eslint-disable-next-line no-console
-  console.log('filter:', JSON.stringify(zfilter));
   let filter = {};
   if (zfilter) {
     filter = zfilter;
@@ -60,8 +61,7 @@ const getMaddeDun = catchAsync(async (req, res) => {
 
 const getMaddeBugun = catchAsync(async (req, res) => {
   const { zfilter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet', 'isActive']);
-  // eslint-disable-next-line no-console
-  console.log('filter:', JSON.stringify(zfilter));
+
   let filter = {};
   if (zfilter) {
     filter = zfilter;
@@ -143,6 +143,7 @@ module.exports = {
   getMaddeByName,
   updateMadde,
   getMaddeAll,
+  mergeSubMadde,
   getMaddeDun,
   getMaddeBugun,
   updateSubMadde,

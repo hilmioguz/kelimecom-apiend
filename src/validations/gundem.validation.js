@@ -37,6 +37,17 @@ const createSubMadde = {
   body: Joi.object().keys(whichDictSchema),
 };
 
+const mergeSubMadde = {
+  params: Joi.object().keys({
+    maddeId: Joi.required().custom(objectId),
+  }),
+  body: Joi.object()
+    .keys({
+      id: Joi.required().custom(objectId),
+    })
+    .min(1),
+};
+
 const getMaddeler = {
   query: Joi.object().keys({
     query: Joi.string().optional(),
@@ -149,6 +160,7 @@ module.exports = {
   getMaddeByName,
   updateMadde,
   deleteMadde,
+  mergeSubMadde,
   deleteSubMadde,
   updateSubMadde,
   userMaddeFavorites,

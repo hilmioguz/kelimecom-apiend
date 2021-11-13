@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const assert = require('assert');
 const mongoose = require('mongoose');
-const { Gundem } = require('../models');
+const { Gundem, Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
 
 // eslint-disable-next-line no-unused-vars
@@ -114,6 +114,114 @@ const updateMaddeById = async (maddeId, updateBody) => {
   Object.assign(madde, updateBody);
   await madde.save();
   return madde;
+};
+
+const mergeSubMadde = async (maddeId, updateBody) => {
+  let fmadde;
+  try {
+    fmadde = await Gundem.findOne({ _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('eroror1:', error);
+    throw new ApiError(httpStatus.NOT_FOUND, error);
+  }
+
+  const temp = [...fmadde.whichDict];
+  const madde = temp.find((x) => x.id.toString() === updateBody.id.toString());
+  const updatepayload = {
+    anlam: madde.anlam,
+    dictId: madde.dictId._id,
+    tur: madde.tur,
+    alttur: madde.alttur,
+    tip: madde.tip,
+    koken: madde.koken,
+    cinsiyet: madde.cinsiyet,
+    bicim: madde.bicim,
+    sinif: madde.sinif,
+    transkripsiyon: madde.transkripsiyon,
+    fonetik: madde.fonetik,
+    heceliyazim: madde.heceliyazim,
+    zitanlam: madde.zitanlam,
+    esanlam: madde.esanlam,
+    telaffuz: madde.telaffuz,
+  };
+  const newpayload = {
+    madde: fmadde.madde,
+  };
+  newpayload.whichDict = [
+    {
+      anlam: madde.anlam,
+      dictId: madde.dictId._id,
+      tur: madde.tur,
+      alttur: madde.alttur,
+      tip: madde.tip,
+      koken: madde.koken,
+      cinsiyet: madde.cinsiyet,
+      bicim: madde.bicim,
+      sinif: madde.sinif,
+      transkripsiyon: madde.transkripsiyon,
+      fonetik: madde.fonetik,
+      heceliyazim: madde.heceliyazim,
+      zitanlam: madde.zitanlam,
+      esanlam: madde.esanlam,
+      telaffuz: madde.telaffuz,
+    },
+  ];
+  if (madde.digerMaddeId && madde.digerMaddeId._id) {
+    updatepayload['whichDict.$.digerMaddeId'] = madde.digerMaddeId._id;
+    newpayload['whichDict[0].digerMaddeId'] = madde.digerMaddeId._id;
+  }
+  if (madde.karsiMaddeId && madde.karsiMaddeId._id) {
+    updatepayload['whichDict.$.karsiMaddeId'] = madde.karsiMaddeId._id;
+    newpayload['whichDict[0].karsiMaddeId'] = madde.karsiMaddeId._id;
+  }
+  let newmadde;
+  let founded;
+
+  try {
+    founded = await Madde.findOne({ madde: fmadde.madde });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log('eroror2:', error);
+    throw new ApiError(httpStatus.NOT_FOUND, error);
+  }
+
+  if (founded) {
+    //   // eslint-disable-next-line no-console
+    //   console.log(('YENİ BULDUK', founded));
+
+    newmadde = await Madde.updateOne(
+      { madde: fmadde.madde },
+      {
+        $push: { whichDict: updatepayload },
+      },
+      { new: true, upsert: true }
+    );
+  } else {
+    // eslint-disable-next-line no-console
+    console.log(('YENİ MADDEMİŞZ', newpayload));
+    newmadde = await Madde.create(newpayload);
+  }
+
+  if (!newmadde) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Madde Birleştirilemedi');
+  }
+
+  const gundemupdate = await Gundem.updateOne(
+    { _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) },
+    {
+      $set: {
+        'whichDict.$.isCheckedOutToMadde': true,
+        'whichDict.$.updatedAt': Date.now(),
+      },
+    },
+    { upsert: true }
+  );
+
+  if (!gundemupdate) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Gündem birleştirme sonucu güncellenemedi.');
+  }
+  return newmadde;
 };
 
 const updateSubMaddeById = async (maddeId, updateBody) => {
@@ -258,5 +366,6 @@ module.exports = {
   deleteMaddeById,
   deleteSubMaddeById,
   userMaddeFavorites,
+  mergeSubMadde,
   userMaddeLikes,
 };

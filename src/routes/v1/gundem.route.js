@@ -31,4 +31,8 @@ router
   .patch(auth('manageMadde'), validate(gundemValidation.updateSubMadde), gundemController.updateSubMadde)
   .delete(auth('manageMadde'), validate(gundemValidation.deleteSubMadde), gundemController.deleteSubMadde);
 
+router
+  .route('/submadde-merge/:maddeId')
+  .post(auth('manageMadde'), validate(gundemValidation.mergeSubMadde), gundemController.mergeSubMadde);
+
 module.exports = router;
