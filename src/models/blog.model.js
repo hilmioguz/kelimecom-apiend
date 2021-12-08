@@ -12,6 +12,7 @@ const blogSchema = Schema(
       trim: true,
     },
     image: String,
+    innerImage: String,
     body: String,
     slug: {
       type: String,

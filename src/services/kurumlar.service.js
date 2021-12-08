@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
+const fetch = require('node-fetch');
 const { Kurumlar } = require('../models');
 const ApiError = require('../utils/ApiError');
-
 /**
  * Create a kurum
  * @param {Object} kurumBody
@@ -12,6 +12,14 @@ const createKurum = async (kurumBody) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Kurumlar zaten tanımlı');
   }
   const kurum = await Kurumlar.create(kurumBody);
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/kurumlar');
+    // eslint-disable-next-line no-console
+    console.log('kurumlar silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return kurum;
 };
 
@@ -73,6 +81,14 @@ const updateKurumById = async (kurumId, updateBody) => {
   }
   Object.assign(kurum, updateBody);
   await kurum.save();
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/kurumlar');
+    // eslint-disable-next-line no-console
+    console.log('kurumlar silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return kurum;
 };
 
@@ -87,6 +103,14 @@ const deleteKurumById = async (kurumId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Kurum bulunamadı');
   }
   await kurum.remove();
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/kurumlar');
+    // eslint-disable-next-line no-console
+    console.log('kurumlar silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return kurum;
 };
 

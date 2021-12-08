@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+const fetch = require('node-fetch');
 const { Dictionaries } = require('../models');
 const ApiError = require('../utils/ApiError');
 
@@ -12,6 +13,14 @@ const createDictionaries = async (dictBoddy) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Sözlük zaten tanımlı');
   }
   const dictionary = await Dictionaries.create(dictBoddy);
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/sozlukler');
+    // eslint-disable-next-line no-console
+    console.log('sozlukler silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return dictionary;
 };
 
@@ -63,6 +72,14 @@ const updateDictionariesById = async (dictionaryId, updateBody) => {
   }
   Object.assign(dictionary, updateBody);
   await dictionary.save();
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/sozlukler');
+    // eslint-disable-next-line no-console
+    console.log('sozlukler silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return dictionary;
 };
 
@@ -77,6 +94,14 @@ const deleteDictionariesById = async (dictionaryId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Sözlük bulunamadı');
   }
   await dictionary.remove();
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/sozlukler');
+    // eslint-disable-next-line no-console
+    console.log('sozlukler silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return dictionary;
 };
 

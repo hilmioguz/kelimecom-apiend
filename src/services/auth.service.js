@@ -16,6 +16,9 @@ const loginUserWithEmailAndPassword = async (email, password) => {
   if (!user || !(await user.isPasswordMatch(password))) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Yanlış eposta adresi veya şifre');
   }
+  if (!user.isActive) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Hesabınız pasifleştirilmiştir.');
+  }
   return user;
 };
 /**
@@ -27,6 +30,9 @@ const loginGoogle = async (googleId) => {
   const user = await userService.getUserByGoogleId(googleId);
   if (!user) {
     throw new ApiError(httpStatus.UNAUTHORIZED, 'Yanlış google kimliği veya önce oturum açmanız gerekiyor!');
+  }
+  if (!user.isActive) {
+    throw new ApiError(httpStatus.UNAUTHORIZED, 'Hesabınız pasifleştirilmiştir.');
   }
   return user;
 };

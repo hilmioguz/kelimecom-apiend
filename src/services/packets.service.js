@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+const fetch = require('node-fetch');
 const { Packets } = require('../models');
 const ApiError = require('../utils/ApiError');
 
@@ -12,6 +13,14 @@ const createPacket = async (packetBody) => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Packet zaten tanımlı');
   }
   const packet = await Packets.create(packetBody);
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/paketler');
+    // eslint-disable-next-line no-console
+    console.log('paketler silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return packet;
 };
 
@@ -63,6 +72,14 @@ const updatePacketById = async (packetId, updateBody) => {
   }
   Object.assign(packet, updateBody);
   await packet.save();
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/paketler');
+    // eslint-disable-next-line no-console
+    console.log('paketler silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return packet;
 };
 
@@ -77,6 +94,14 @@ const deletePacketById = async (packetId) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'Paket bulunamadı');
   }
   await packet.remove();
+  try {
+    await fetch('http://frontend:5000/redisClient/f0c8ffa4df03ef51ba9c63ec18b01f4a/paketler');
+    // eslint-disable-next-line no-console
+    console.log('paketler silindi');
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.log(err.message);
+  }
   return packet;
 };
 

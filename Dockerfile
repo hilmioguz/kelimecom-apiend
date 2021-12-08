@@ -1,8 +1,8 @@
 FROM node:alpine
 
-RUN mkdir -p /usr/src/kelime-apiend && chown -R node:node /usr/src/kelime-apiend
+RUN mkdir -p /usr/src/apiend && chown -R node:node /usr/src/apiend
 
-WORKDIR /usr/src/kelime-apiend
+WORKDIR /usr/src/apiend
 
 COPY package.json yarn.lock ./
 

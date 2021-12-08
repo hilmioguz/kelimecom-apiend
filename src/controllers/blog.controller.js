@@ -10,7 +10,7 @@ const createBlog = catchAsync(async (req, res) => {
 });
 
 const getBlogs = catchAsync(async (req, res) => {
-  const { filter, options } = prefilter(req, ['name']);
+  const { filter, options } = prefilter(req, ['name', 'isActive']);
   const result = await blogService.queryBlogs(filter, options);
   res.send(result);
 });
