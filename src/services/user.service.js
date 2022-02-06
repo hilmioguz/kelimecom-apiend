@@ -1,7 +1,12 @@
 const httpStatus = require('http-status');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { emailService } = require('.');
+
+const { ObjectId } = mongoose.Types;
+
 /**
  * Create a user
  * @param {Object} userBody
@@ -18,6 +23,46 @@ const createUser = async (userBody) => {
   return user;
 };
 
+const createMassUser = async (userBody) => {
+  if (!userBody.users) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Kullanıcı listesi yok ');
+  }
+  const { paketId, role, password, kurumId, paketEnd, paketBegin } = userBody;
+  const bulkOps = await Promise.all(
+    userBody.users.map(async (row) => ({
+      updateOne: {
+        filter: { email: row.email.toString() },
+        update: {
+          $set: {
+            email: row.email.toString(),
+            name: row.name.toString(),
+            password: await bcrypt.hash(password, 8),
+            role,
+            kurumId: ObjectId(kurumId),
+            packetId: ObjectId(paketId),
+            isEmailVerified: true,
+            isActive: true,
+            customPacketId: null,
+            clientIp: null,
+            paketBegin: `${paketBegin}T00:00:01.000+00:00`,
+            paketEnd: `${paketEnd}T23:59:59.000+00:00`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        },
+        upsert: true,
+      },
+    }))
+  );
+
+  const result = await User.collection
+    .bulkWrite(bulkOps)
+    .then((results) => results)
+    .catch((error) => {
+      throw new ApiError(httpStatus.BAD_REQUEST, error.message);
+    });
+  return result;
+};
 /**
  * Create a user coming from outh goole sign
  * @param {Object} userBody
@@ -149,4 +194,5 @@ module.exports = {
   getUserByEmail,
   updateUserById,
   deleteUserById,
+  createMassUser,
 };

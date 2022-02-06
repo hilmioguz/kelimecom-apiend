@@ -23,6 +23,18 @@ const createUser = {
   }),
 };
 
+const createMassUser = {
+  body: Joi.object().keys({
+    role: Joi.string().required().valid('user', 'moderater', 'admin'),
+    users: Joi.array().required().min(1),
+    password: Joi.string().required(),
+    paketBegin: Joi.string().required(),
+    paketEnd: Joi.string().required(),
+    kurumId: Joi.string().custom(objectId).required(),
+    paketId: Joi.string().custom(objectId).required(),
+  }),
+};
+
 const getUsers = {
   query: Joi.object().keys({
     query: Joi.string().optional(),
@@ -70,4 +82,5 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
+  createMassUser,
 };

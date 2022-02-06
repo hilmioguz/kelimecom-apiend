@@ -17,6 +17,10 @@ router
   .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 
+router
+  .route('/toplukullanici')
+  .post(auth('manageUsers'), validate(userValidation.createMassUser), userController.createMassUser);
+
 module.exports = router;
 
 /**

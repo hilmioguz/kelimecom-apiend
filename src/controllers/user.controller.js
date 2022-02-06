@@ -9,6 +9,11 @@ const createUser = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(user);
 });
 
+const createMassUser = catchAsync(async (req, res) => {
+  const user = await userService.createMassUser(req.body);
+  res.status(httpStatus.CREATED).send(user);
+});
+
 const getUsers = catchAsync(async (req, res) => {
   const { filter, options } = prefilter(req, ['name', 'role', 'packetId']);
   const result = await userService.queryUsers(filter, options);
@@ -39,4 +44,5 @@ module.exports = {
   getUser,
   updateUser,
   deleteUser,
+  createMassUser,
 };
