@@ -170,7 +170,7 @@ userSchema.pre('save', async function (next) {
       const kurumlar = await Kurumlar.find({ isActive: 1 });
       const kurumsalpaket = await Packets.find({ role: 'kurumsal' });
       const standartpaket = await Packets.find({ role: 'standart' });
-      const emailMatch = kurumlar.filter((kurum) => kurum.mail_suffix === userdomain);
+      const emailMatch = kurumlar.filter((kurum) => userdomain.includes(kurum.mail_suffix));
       // eslint-disable-next-line no-console
       // console.log('emailMatch:', emailMatch);
       if (emailMatch && emailMatch.length) {
