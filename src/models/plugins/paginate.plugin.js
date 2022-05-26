@@ -47,7 +47,8 @@ const paginate = (schema) => {
     } else {
       docsPromise = this.find(filter).sort(sort);
     }
-
+    // eslint-disable-next-line no-console
+    console.log('filter:', filter);
     if (options.populate) {
       options.populate.split(',').forEach((populateOption) => {
         docsPromise = docsPromise.populate(

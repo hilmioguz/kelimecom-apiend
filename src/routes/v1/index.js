@@ -10,6 +10,9 @@ const kurumlarRoute = require('./kurumlar.route');
 const kurumlarAdminRoute = require('./kurumlaradmin.route');
 const customPacketRoute = require('./custompacket.route');
 const dictionaryRoute = require('./dictionary.route');
+const kuluckaDictionaryRoute = require('./kuluckadictionary.route');
+const kuluckaMaddeRoute = require('./kuluckamadde.route');
+const kuluckaSectionRoute = require('./kuluckasection.route');
 const davetRoute = require('./davet.route');
 const iletisimRoute = require('./iletisim.route');
 const statsRoute = require('./stats.route');
@@ -76,6 +79,18 @@ const defaultRoutes = [
     path: '/fileupload',
     route: fileUploadRoute,
   },
+  {
+    path: '/kuluckadictionary',
+    route: kuluckaDictionaryRoute,
+  },
+  {
+    path: '/kuluckamadde',
+    route: kuluckaMaddeRoute,
+  },
+  {
+    path: '/kuluckasection',
+    route: kuluckaSectionRoute,
+  },
 ];
 
 const adminRoutes = [
@@ -118,6 +133,18 @@ const adminRoutes = [
   {
     path: '/fileupload',
     route: fileUploadRoute,
+  },
+  {
+    path: '/kuluckadictionary',
+    route: kuluckaDictionaryRoute,
+  },
+  {
+    path: '/kuluckamadde',
+    route: kuluckaMaddeRoute,
+  },
+  {
+    path: '/kuluckasection',
+    route: kuluckaSectionRoute,
   },
 ];
 

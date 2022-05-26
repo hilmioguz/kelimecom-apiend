@@ -16,3 +16,6 @@ module.exports.guestHistoryService = require('./guesthistory.service');
 module.exports.searchService = require('./search.service');
 module.exports.searchstatService = require('./searchstat.service');
 module.exports.addstatService = require('./addstat.service');
+module.exports.kuluckadictionaryService = require('./kuluckadictionaries.service');
+module.exports.kuluckamaddeService = require('./kuluckamadde.service');
+module.exports.kuluckasectionService = require('./kuluckasections.service');

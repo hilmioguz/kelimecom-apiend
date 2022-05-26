@@ -13,3 +13,6 @@ module.exports.Guesthistory = require('./guesthistory.model');
 module.exports.Invitation = require('./invitation.model');
 module.exports.Searchstat = require('./searchstat.model');
 module.exports.Addstat = require('./addstat.model');
+module.exports.Kuluckadictionaries = require('./kuluckadictionaries.model');
+module.exports.Kuluckamadde = require('./kuluckamadde.model');
+module.exports.Kuluckasection = require('./kuluckasection.model');

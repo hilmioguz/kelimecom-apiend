@@ -16,10 +16,13 @@ const createUser = {
     picture: Joi.string().empty().optional(),
     isEmailVerified: Joi.boolean().optional(),
     isActive: Joi.boolean().optional(),
+    canDoKulucka: Joi.boolean().optional(),
+    canDoKuluckaModerate: Joi.boolean().optional(),
     paketBegin: Joi.string().optional(),
     paketEnd: Joi.string().optional(),
     kurumId: Joi.string().custom(objectId),
     packetId: Joi.string().custom(objectId),
+    assignedSet: Joi.string().optional(),
   }),
 };
 
@@ -62,10 +65,13 @@ const updateUser = {
       picture: Joi.string().optional(),
       isEmailVerified: Joi.boolean().optional(),
       isActive: Joi.boolean().optional(),
+      canDoKulucka: Joi.boolean().optional(),
+      canDoKuluckaModerate: Joi.boolean().optional(),
       paketBegin: Joi.string().optional(),
       paketEnd: Joi.string().optional(),
       kurumId: Joi.string().custom(objectId),
       packetId: Joi.string().custom(objectId),
+      assignedSet: Joi.string().optional(),
     })
     .min(1),
 };

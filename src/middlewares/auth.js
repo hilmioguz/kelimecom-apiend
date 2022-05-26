@@ -5,7 +5,8 @@ const { roleRights } = require('../config/roles');
 
 const verifyCallback = (req, resolve, reject, requiredRights) => async (err, user, info) => {
   req.user = user;
-
+  // eslint-disable-next-line no-console
+  console.log('USER AUTH:', JSON.stringify(req.user));
   if (requiredRights[0] === 'freeZone') {
     resolve();
   }

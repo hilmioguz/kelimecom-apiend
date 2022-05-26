@@ -6,7 +6,7 @@ const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
 const { Schema } = mongoose;
 
-const gundemSchema = mongoose.Schema(
+const kuluckamaddeSchema = mongoose.Schema(
   {
     madde: {
       type: String,
@@ -32,13 +32,13 @@ const gundemSchema = mongoose.Schema(
         },
         karsiMaddeId: {
           type: Schema.Types.ObjectId,
-          ref: 'Gundem',
+          ref: 'Kuluckamadde',
           autopopulate: { maxDepth: 1 },
         },
         dictId: {
           type: Schema.Types.ObjectId,
           required: true,
-          ref: 'Dictionaries',
+          ref: 'Kuluckadictionaries',
           autopopulate: true,
         },
         alttur: [
@@ -98,6 +98,10 @@ const gundemSchema = mongoose.Schema(
           default: '',
         },
         eserinyazari: {
+          type: String,
+          default: '',
+        },
+        esertxt: {
           type: String,
           default: '',
         },
@@ -232,6 +236,10 @@ const gundemSchema = mongoose.Schema(
             ref: 'User',
           },
         ],
+        bulunduguSayfalar: {
+          type: String,
+          default: '',
+        },
         userSubmitted: {
           type: Schema.Types.ObjectId,
           ref: 'User',
@@ -243,6 +251,14 @@ const gundemSchema = mongoose.Schema(
           autopopulate: { maxDepth: 1 },
         },
         isCheckedOutToMadde: {
+          type: Boolean,
+          default: false,
+        },
+        isDelivered: {
+          type: Boolean,
+          default: false,
+        },
+        isControlled: {
           type: Boolean,
           default: false,
         },
@@ -266,14 +282,14 @@ const gundemSchema = mongoose.Schema(
     displaydates: true,
   }
 );
-// gundemSchema.options.private = false;
-gundemSchema.index({ madde: 'text' });
+// kuluckamaddeSchema.options.private = false;
+kuluckamaddeSchema.index({ madde: 'text' });
 // add plugin that converts mongoose to json
-// gundemSchema.plugin(slug, { tmpl: '<%=madde%>' });
-gundemSchema.plugin(toJSON);
-gundemSchema.plugin(paginate);
-gundemSchema.plugin(aggregatePaginate);
-gundemSchema.plugin(autopop);
+// kuluckamaddeSchema.plugin(slug, { tmpl: '<%=madde%>' });
+kuluckamaddeSchema.plugin(toJSON);
+kuluckamaddeSchema.plugin(paginate);
+kuluckamaddeSchema.plugin(aggregatePaginate);
+kuluckamaddeSchema.plugin(autopop);
 
 /**
  * Check if madde is already in Db
@@ -281,14 +297,14 @@ gundemSchema.plugin(autopop);
  * @param {ObjectId} [excludeMaddeId] - The id of the madde to be excluded
  * @returns {Promise<boolean>}
  */
-gundemSchema.statics.isMaddeAlrearyInDB = async function (madde, excludeMaddeId) {
+kuluckamaddeSchema.statics.isMaddeAlrearyInDB = async function (madde, excludeMaddeId) {
   const maddem = await this.findOne({ madde, _id: { $ne: excludeMaddeId } });
   return !!maddem;
 };
 
 /**
- * @typedef Gundem
+ * @typedef Kuluckamadde
  */
-const Gundem = mongoose.model('Gundem', gundemSchema);
+const Kuluckamadde = mongoose.model('Kuluckamadde', kuluckamaddeSchema);
 
-module.exports = Gundem;
+module.exports = Kuluckamadde;

@@ -39,7 +39,7 @@ const prefilter = (req, allowedfields) => {
 
   // eslint-disable-next-line no-console
   const options = pick(qoption, ['sortBy', 'sortDesc', 'limit', 'page']);
-  const picked = pick(q, ['searchTerm', 'searchField', 'searchType', 'isActive']);
+  const picked = pick(q, ['searchTerm', 'searchField', 'searchType', 'isActive', 'isCompleted']);
   let filter = null;
   if (picked) {
     if (picked.searchType === 'simple') {
@@ -67,10 +67,13 @@ const prefilter = (req, allowedfields) => {
           [obj]: { $regex: picked.searchTerm, $options: 'i' },
         })),
       };
-    } else if (picked.isActive) {
-      filter = {
-        isActive: true,
-      };
+    }
+    if (filter == null) filter = {};
+    if (typeof picked.isActive !== 'undefined' && picked.isActive != null) {
+      filter.isActive = picked.isActive;
+    }
+    if (picked.isCompleted !== 'undefined' && picked.isCompleted != null) {
+      filter.isCompleted = picked.isCompleted;
     }
   }
   // eslint-disable-next-line no-console

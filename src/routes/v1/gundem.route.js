@@ -12,6 +12,7 @@ router
   .get(auth('freeZone'), validate(gundemValidation.getMaddeler), gundemController.getMaddeler);
 
 router.route('/getall').get(auth('freeZone'), gundemController.getMaddeAll);
+router.route('/getmyownentries').get(auth('authorized'), gundemController.getMyOwnMaddeEntries);
 router.route('/getMaddeBugun').get(auth('freeZone'), gundemController.getMaddeBugun);
 router.route('/getMaddeDun').get(auth('freeZone'), gundemController.getMaddeDun);
 

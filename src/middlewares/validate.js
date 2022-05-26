@@ -6,6 +6,8 @@ const ApiError = require('../utils/ApiError');
 const validate = (schema) => (req, res, next) => {
   const validSchema = pick(schema, ['params', 'body']);
   const object = pick(req, Object.keys(validSchema));
+  // eslint-disable-next-line no-console
+  console.log('object: ', object);
   const { value, error } = Joi.compile(validSchema)
     .prefs({ errors: { label: 'key' } })
     .validate(object);

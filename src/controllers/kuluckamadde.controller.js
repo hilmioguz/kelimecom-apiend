@@ -3,7 +3,7 @@ const httpStatus = require('http-status');
 const prefilter = require('../utils/prefilter');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { gundemService } = require('../services');
+const { kuluckamaddeService } = require('../services');
 
 const todaystart = moment().startOf('day');
 const todayend = moment().endOf('day');
@@ -11,23 +11,26 @@ const yesterdaystart = moment().subtract(1, 'day').startOf('day');
 const yesterdayend = moment().subtract(1, 'day').endOf('day');
 
 const createMadde = catchAsync(async (req, res) => {
-  const madde = await gundemService.createMadde(req.body);
+  const { body } = req;
+  // eslint-disable-next-line no-console
+  console.log('KuluckaEKle:payload', JSON.stringify(body));
+  const madde = await kuluckamaddeService.createMadde(body);
   res.status(httpStatus.CREATED).send(madde);
 });
 
 const createSubMadde = catchAsync(async (req, res) => {
-  const madde = await gundemService.createSubMadde(req.params.maddeId, req.body);
+  const madde = await kuluckamaddeService.createSubMadde(req.params.maddeId, req.body);
   res.status(httpStatus.CREATED).send(madde);
 });
 
 const mergeSubMadde = catchAsync(async (req, res) => {
-  const madde = await gundemService.mergeSubMadde(req.params.maddeId, req.body);
+  const madde = await kuluckamaddeService.mergeSubMadde(req.params.maddeId, req.body);
   res.status(httpStatus.CREATED).send(madde);
 });
 
 const getMaddeler = catchAsync(async (req, res) => {
   const { filter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet']);
-  const result = await gundemService.queryMaddeler(filter, options);
+  const result = await kuluckamaddeService.queryMaddeler(filter, options);
   res.send(result);
 });
 
@@ -41,24 +44,24 @@ const getMaddeAll = catchAsync(async (req, res) => {
   filter['whichDict.isActive'] = true;
   options.sortBy = 'updatedAt';
   options.sortDesc = -1;
-  const result = await gundemService.queryMaddeler(filter, options);
+  const result = await kuluckamaddeService.queryMaddeler(filter, options);
   res.send(result);
 });
-const getMyOwnMaddeEntries = catchAsync(async (req, res) => {
-  const { zfilter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet', 'isActive']);
-  let filter = {};
-  if (zfilter) {
-    filter = zfilter;
-  }
 
-  filter['whichDict.isActive'] = false;
-  filter['whichDict.isCheckedOutToMadde'] = false;
-  filter['whichDict.userSubmitted'] = req.user.id;
-  options.sortBy = 'updatedAt';
-  options.sortDesc = -1;
-  const result = await gundemService.queryMaddeler(filter, options);
+const getMyOwnMaddeEntries = catchAsync(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(httpStatus.NON_AUTHORITATIVE_INFORMATION, 'Kullanıcı bulunamadı');
+  }
+  const { user } = req;
+  let result = null;
+  if (user && user.canDoKuluckaModerate) {
+    result = await kuluckamaddeService.getMyModeraterMaddeEntries(user.assignedSet);
+  } else if (user && user.canDoKulucka) {
+    result = await kuluckamaddeService.getMyOwnMaddeEntries(user.id);
+  }
   res.send(result);
 });
+
 const getMaddeDun = catchAsync(async (req, res) => {
   const { zfilter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet', 'isActive']);
   let filter = {};
@@ -69,7 +72,7 @@ const getMaddeDun = catchAsync(async (req, res) => {
   filter['whichDict.updatedAt'] = { $gte: yesterdaystart, $lt: yesterdayend };
   options.sortBy = 'updatedAt';
   options.sortDesc = -1;
-  const result = await gundemService.queryMaddeler(filter, options);
+  const result = await kuluckamaddeService.queryMaddeler(filter, options);
   res.send(result);
 });
 
@@ -84,18 +87,18 @@ const getMaddeBugun = catchAsync(async (req, res) => {
   filter['whichDict.updatedAt'] = { $gte: todaystart, $lt: todayend };
   options.sortBy = 'updatedAt';
   options.sortDesc = -1;
-  const result = await gundemService.queryMaddeler(filter, options);
+  const result = await kuluckamaddeService.queryMaddeler(filter, options);
   res.send(result);
 });
 
 const getRawMaddeler = catchAsync(async (req, res) => {
   const filter = req.body.searchTerm;
-  const result = await gundemService.rawQueryMaddeler(filter);
+  const result = await kuluckamaddeService.rawQueryMaddeler(filter);
   res.send(result);
 });
 
 const getMaddeById = catchAsync(async (req, res) => {
-  const madde = await gundemService.getMaddeById(req.params.maddeId);
+  const madde = await kuluckamaddeService.getMaddeById(req.params.maddeId);
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
   }
@@ -103,7 +106,7 @@ const getMaddeById = catchAsync(async (req, res) => {
 });
 
 const getMaddeByName = catchAsync(async (req, res) => {
-  const madde = await gundemService.getMaddeByName(req.params.madde);
+  const madde = await kuluckamaddeService.getMaddeByName(req.params.madde);
   if (!madde) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
   }
@@ -111,28 +114,34 @@ const getMaddeByName = catchAsync(async (req, res) => {
 });
 
 const updateMadde = catchAsync(async (req, res) => {
-  const madde = await gundemService.updateMaddeById(req.params.maddeId, req.body);
+  const { body } = req;
+  const madde = await kuluckamaddeService.updateMaddeById(req.params.maddeId, body);
   res.send(madde);
 });
 
 const updateSubMadde = catchAsync(async (req, res) => {
-  const madde = await gundemService.updateSubMaddeById(req.params.maddeId, req.body);
+  const madde = await kuluckamaddeService.updateSubMaddeById(req.params.maddeId, req.body);
   res.send(madde);
 });
 
 const deleteMadde = catchAsync(async (req, res) => {
-  await gundemService.deleteMaddeById(req.params.maddeId);
+  await kuluckamaddeService.deleteMaddeById(req.params.maddeId);
   res.status(httpStatus.NO_CONTENT).send();
 });
 
 const deleteSubMadde = catchAsync(async (req, res) => {
-  await gundemService.deleteSubMaddeById(req.params.maddeId, req.params.anlamId);
+  await kuluckamaddeService.deleteSubMaddeById(req.params.maddeId, req.params.anlamId);
   res.status(httpStatus.NO_CONTENT).send();
 });
 
 const userMaddeFavorites = catchAsync(async (req, res) => {
   if (req.user) {
-    const madde = await gundemService.userMaddeFavorites(req.body.maddeId, req.body.anlamId, req.user.id, req.body.method);
+    const madde = await kuluckamaddeService.userMaddeFavorites(
+      req.body.maddeId,
+      req.body.anlamId,
+      req.user.id,
+      req.body.method
+    );
     res.send(madde);
   } else {
     throw new ApiError(httpStatus.NETWORK_AUTHENTICATION_REQUIRED, 'Not authorized. You must login first!');
@@ -141,7 +150,7 @@ const userMaddeFavorites = catchAsync(async (req, res) => {
 
 const userMaddeLikes = catchAsync(async (req, res) => {
   if (req.user) {
-    const madde = await gundemService.userMaddeLikes(req.body.maddeId, req.body.anlamId, req.user.id, req.body.method);
+    const madde = await kuluckamaddeService.userMaddeLikes(req.body.maddeId, req.body.anlamId, req.user.id, req.body.method);
     res.send(madde);
   } else {
     throw new ApiError(httpStatus.NETWORK_AUTHENTICATION_REQUIRED, 'Not authorized. You must login first!');

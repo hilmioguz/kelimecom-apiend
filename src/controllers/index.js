@@ -12,3 +12,6 @@ module.exports.generalSearchController = require('./generalSearch.controller');
 module.exports.invitationController = require('./invitation.controller');
 module.exports.iletisimController = require('./iletisim.controller');
 module.exports.statsController = require('./stats.controller');
+module.exports.kuluckadictionaryController = require('./kuluckadictionaries.controller');
+module.exports.kuluckamaddeController = require('./kuluckamadde.controller');
+module.exports.kuluckasectionController = require('./kuluckasections.controller');

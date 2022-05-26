@@ -20,6 +20,9 @@ const dictionarySchema = mongoose.Schema(
     lang: {
       type: String,
     },
+    anlamLang: {
+      type: String,
+    },
     isActive: {
       type: Boolean,
       default: false,

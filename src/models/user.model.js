@@ -58,6 +58,18 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    canDoKulucka: {
+      type: Boolean,
+      default: false,
+    },
+    canDoKuluckaModerate: {
+      type: Boolean,
+      default: false,
+    },
+    assignedSet: {
+      type: Schema.Types.ObjectId,
+      ref: 'Kuluckaset',
+    },
     googleId: {
       type: String,
       default: null,

@@ -48,14 +48,17 @@ const upload = multer({
 router.route('/').post(upload.any(), (req, res) => {
   // eslint-disable-next-line no-console
   console.log(req.files);
-  const files = req.files.map((file) => {
-    const $file = file;
-    // eslint-disable-next-line prefer-destructuring
-    $file.url = $file.url.split('?')[0];
-    // eslint-disable-next-line no-console
-    return $file;
-  });
-  res.status(200).json(files);
+  if (req && req.files && req.files.length) {
+    const files = req.files.map((file) => {
+      const $file = file;
+      // eslint-disable-next-line prefer-destructuring
+      $file.url = $file.url.split('?')[0];
+      // eslint-disable-next-line no-console
+      return $file;
+    });
+    res.status(200).json(files);
+  }
+  res.status(400).send({ message: 'Yüklenecek Dosya yok ya da eklenmemiş.!' });
 });
 
 module.exports = router;
