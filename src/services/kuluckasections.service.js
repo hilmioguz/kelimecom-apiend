@@ -12,7 +12,7 @@ const { ObjectId } = mongoose.Types;
  * @returns {Promise<Kuluckasection>}
  */
 const createSections = async (dictBoddy) => {
-  if (await Kuluckasection.isSectionsAlrearyInDB(dictBoddy.name)) {
+  if (await Kuluckasection.isSectionsAlrearyInDB(dictBoddy.name, dictBoddy.dictId)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Set zaten tanımlı');
   }
   if (typeof dictBoddy.pages === 'string') {

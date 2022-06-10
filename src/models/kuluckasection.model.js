@@ -56,7 +56,16 @@ const kuluckasectionSchema = mongoose.Schema(
     timestamps: true,
   }
 );
-
+/**
+ * Check if madde is already in Db
+ * @param {string} madde - The given madde's text
+ * @param {ObjectId} [excludeMaddeId] - The id of the madde to be excluded
+ * @returns {Promise<boolean>}
+ */
+kuluckasectionSchema.statics.isSectionsAlrearyInDB = async function (name, dictId, excludeMaddeId) {
+  const section = await this.findOne({ name, dictId, _id: { $ne: excludeMaddeId } });
+  return !!section;
+};
 // add plugin that converts mongoose to json
 kuluckasectionSchema.plugin(toJSON);
 kuluckasectionSchema.plugin(paginate);
