@@ -23,6 +23,9 @@ const kuluckadictionarySchema = mongoose.Schema(
     anlamLang: {
       type: String,
     },
+    karsiLang: {
+      type: String,
+    },
     isActive: {
       type: Boolean,
       default: false,
@@ -78,6 +81,10 @@ const kuluckadictionarySchema = mongoose.Schema(
       default: '',
     },
     hakkindaBlogUrl: {
+      type: String,
+      default: '',
+    },
+    kisaltmalarUrl: {
       type: String,
       default: '',
     },
