@@ -16,3 +16,4 @@ module.exports.Addstat = require('./addstat.model');
 module.exports.Kuluckadictionaries = require('./kuluckadictionaries.model');
 module.exports.Kuluckamadde = require('./kuluckamadde.model');
 module.exports.Kuluckasection = require('./kuluckasection.model');
+module.exports.SiteLanguage = require('./sitelanguage.model');

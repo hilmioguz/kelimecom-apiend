@@ -12,6 +12,7 @@ const allRoles = {
     'getMadde',
     'manageMadde',
     'manageBlog',
+    'manageConfig',
     'getPacket',
     'managePacket',
     'getCustomPackets',

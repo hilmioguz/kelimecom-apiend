@@ -17,6 +17,7 @@ const davetRoute = require('./davet.route');
 const iletisimRoute = require('./iletisim.route');
 const statsRoute = require('./stats.route');
 const generalSearchRoute = require('./generalSearch.route');
+const sitelanguageRoute = require('./sitelanguage.route');
 const fileUploadRoute = require('./fileupload.route');
 const config = require('../../config/config');
 
@@ -91,6 +92,10 @@ const defaultRoutes = [
     path: '/kuluckasection',
     route: kuluckaSectionRoute,
   },
+  {
+    path: '/sitelanguage',
+    route: sitelanguageRoute,
+  },
 ];
 
 const adminRoutes = [
@@ -145,6 +150,10 @@ const adminRoutes = [
   {
     path: '/kuluckasection',
     route: kuluckaSectionRoute,
+  },
+  {
+    path: '/sitelanguage',
+    route: sitelanguageRoute,
   },
 ];
 

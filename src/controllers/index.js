@@ -15,3 +15,4 @@ module.exports.statsController = require('./stats.controller');
 module.exports.kuluckadictionaryController = require('./kuluckadictionaries.controller');
 module.exports.kuluckamaddeController = require('./kuluckamadde.controller');
 module.exports.kuluckasectionController = require('./kuluckasections.controller');
+module.exports.siteLanguageController = require('./sitelanguage.controller');

@@ -10,3 +10,4 @@ module.exports.dictionaryValidation = require('./dictionaries.validation');
 module.exports.generalSearchValidation = require('./generalSearch.validation');
 module.exports.invitationValidation = require('./invitation.validation');
 module.exports.kuluckadictionaryValidation = require('./kuluckadictionaries.validation');
+module.exports.siteLanguageValidation = require('./sitelanguage.validation');
