@@ -12,7 +12,7 @@ router
   .get(auth('authorized'), validate(kuluckamaddeValidation.getMaddeler), kuluckamaddeController.getMaddeler);
 
 router.route('/getall').get(auth('freeZone'), kuluckamaddeController.getMaddeAll);
-router.route('/getmyownentries:kuluckaSectionId').get(auth('authorized'), kuluckamaddeController.getMyOwnMaddeEntries);
+router.route('/getmyownentries/:kuluckaSectionId').get(auth('authorized'), kuluckamaddeController.getMyOwnMaddeEntries);
 
 // router.route('/getMaddeBugun').get(auth('freeZone'), kuluckamaddeController.getMaddeBugun);
 // router.route('/getMaddeDun').get(auth('freeZone'), kuluckamaddeController.getMaddeDun);
