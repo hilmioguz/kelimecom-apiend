@@ -262,6 +262,12 @@ const kuluckamaddeSchema = mongoose.Schema(
           type: Boolean,
           default: false,
         },
+        kuluckaSectionId: {
+          type: Schema.Types.ObjectId,
+          required: true,
+          ref: 'Kuluckasection',
+          autopopulate: true,
+        },
         isActive: {
           type: Boolean,
           default: false,

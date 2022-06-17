@@ -35,6 +35,7 @@ const whichDictSchema = {
   kokendili: Joi.string().optional(),
   kokeni: Joi.string().optional(),
   sozusoyleyen: Joi.string().optional(),
+  kuluckaSectionId: Joi.required().custom(objectId),
   location: Joi.array().ordered(Joi.number().min(-180).max(180).optional(), Joi.number().min(-90).max(90).optional()),
   karsi: Joi.array()
     .items(
@@ -175,6 +176,7 @@ const updateSubMadde = {
     kokendili: Joi.string().optional(),
     kokeni: Joi.string().optional(),
     sozusoyleyen: Joi.string().optional(),
+    kuluckaSectionId: Joi.required().custom(objectId),
     location: Joi.array().ordered(Joi.number().min(-180).max(180).optional(), Joi.number().min(-90).max(90).optional()),
     karsi: Joi.array()
       .items(

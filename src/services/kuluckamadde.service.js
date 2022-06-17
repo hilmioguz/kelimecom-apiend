@@ -89,6 +89,7 @@ const getMyModeraterMaddeEntries = async (setId) => {
         'whichDict.isCheckedOutToMadde': false,
         'whichDict.isDelivered': true,
         'whichDict.isControlled': false,
+        'whichDict.kuluckaSectionId': ObjectId(setId),
         'whichDict.userSubmitted': ObjectId(section.userAssigned.id),
       },
     },
@@ -114,7 +115,7 @@ const getMyModeraterMaddeEntries = async (setId) => {
 
   return maddeler;
 };
-const getMyOwnMaddeEntries = async (userId) => {
+const getMyOwnMaddeEntries = async (userId, kuluckaSectionId) => {
   const agg = [
     {
       $match: {
@@ -122,6 +123,7 @@ const getMyOwnMaddeEntries = async (userId) => {
         'whichDict.isCheckedOutToMadde': false,
         'whichDict.isDelivered': false,
         'whichDict.isControlled': false,
+        'whichDict.kuluckaSectionId': ObjectId(kuluckaSectionId),
         'whichDict.userSubmitted': ObjectId(userId),
       },
     },

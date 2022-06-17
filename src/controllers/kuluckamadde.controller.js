@@ -54,10 +54,11 @@ const getMyOwnMaddeEntries = catchAsync(async (req, res) => {
   }
   const { user } = req;
   let result = null;
+  const { kuluckaSectionId } = req.params;
   if (user && user.canDoKuluckaModerate) {
-    result = await kuluckamaddeService.getMyModeraterMaddeEntries(user.assignedSet);
+    result = await kuluckamaddeService.getMyModeraterMaddeEntries(kuluckaSectionId);
   } else if (user && user.canDoKulucka) {
-    result = await kuluckamaddeService.getMyOwnMaddeEntries(user.id);
+    result = await kuluckamaddeService.getMyOwnMaddeEntries(user.id, kuluckaSectionId);
   }
   res.send(result);
 });
