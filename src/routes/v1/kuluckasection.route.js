@@ -26,6 +26,22 @@ router
   );
 
 router
+  .route('/kuluckacikaldir/:sectionId')
+  .delete(
+    auth('manageDictionaries'),
+    validate(kuluckasectionValidation.deleteKuluckaci),
+    kuluckasectionController.deleteKuluckaci
+  );
+
+router
+  .route('/denetimciyikaldir/:sectionId')
+  .delete(
+    auth('manageDictionaries'),
+    validate(kuluckasectionValidation.deleteDenetimci),
+    kuluckasectionController.deleteDenetimci
+  );
+
+router
   .route('/nextset/:sectionId')
   .get(
     auth('authorized'),
@@ -36,6 +52,7 @@ router
 router
   .route('/teslimet/:sectionId')
   .post(auth('authorized'), validate(kuluckasectionValidation.sectionDelivered), kuluckasectionController.sectionDelivered);
+
 router
   .route('/kontroledildi/:sectionId/:userSubmitted')
   .post(
@@ -43,6 +60,7 @@ router
     validate(kuluckasectionValidation.sectionControlled),
     kuluckasectionController.sectionControlled
   );
+
 router
   .route('/register/:sectionId/:userId/:isModerater')
   .post(auth('authorized'), validate(kuluckasectionValidation.sectionRegister), kuluckasectionController.sectionRegister);

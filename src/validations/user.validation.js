@@ -81,6 +81,11 @@ const deleteUser = {
     userId: Joi.string().custom(objectId),
   }),
 };
+const deleteSet = {
+  params: Joi.object().keys({
+    userId: Joi.string().custom(objectId),
+  }),
+};
 
 module.exports = {
   createUser,
@@ -89,4 +94,5 @@ module.exports = {
   updateUser,
   deleteUser,
   createMassUser,
+  deleteSet,
 };

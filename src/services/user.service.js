@@ -185,6 +185,16 @@ const deleteUserById = async (userId) => {
   return user;
 };
 
+const deleteSet = async (userId) => {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  user.assignedSet = null;
+  await user.save();
+  return user;
+};
+
 module.exports = {
   createUser,
   createGoogleUser,
@@ -195,4 +205,5 @@ module.exports = {
   updateUserById,
   deleteUserById,
   createMassUser,
+  deleteSet,
 };

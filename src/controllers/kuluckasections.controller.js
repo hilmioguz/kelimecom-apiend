@@ -58,6 +58,16 @@ const deleteSection = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const deleteKuluckaci = catchAsync(async (req, res) => {
+  await kuluckasectionService.deleteKuluckaci(req.params.sectionId);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
+const deleteDenetimci = catchAsync(async (req, res) => {
+  await kuluckasectionService.deleteDenetimci(req.params.sectionId);
+  res.status(httpStatus.NO_CONTENT).send();
+});
+
 module.exports = {
   createSection,
   getSections,
@@ -69,4 +79,6 @@ module.exports = {
   sectionControlled,
   sectionDelivered,
   getNextSectionById,
+  deleteDenetimci,
+  deleteKuluckaci,
 };

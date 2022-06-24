@@ -68,7 +68,8 @@ const userSchema = mongoose.Schema(
     },
     assignedSet: {
       type: Schema.Types.ObjectId,
-      ref: 'Kuluckaset',
+      ref: 'Kuluckasection',
+      autopopulate: true,
     },
     googleId: {
       type: String,

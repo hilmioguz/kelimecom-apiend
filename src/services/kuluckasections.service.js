@@ -138,7 +138,7 @@ const sectionControlled = async (sectionId, userId, userSubmitted) => {
   await section.save();
   try {
     await Kuluckamadde.updateMany(
-      { 'whichDict.userSubmitted': ObjectId(userSubmitted) },
+      { 'whichDict.userConfirmed': ObjectId(userSubmitted) },
       {
         $set: {
           'whichDict.$.isControlled': true,
@@ -166,6 +166,28 @@ const deleteSectionsById = async (sectionId) => {
   return section;
 };
 
+const deleteKuluckaci = async (sectionId) => {
+  const section = await getSectionsById(sectionId);
+  if (!section) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Sözlük bulunamadı');
+  }
+  section.userAssigned = null;
+  section.isDelivered = false;
+  await section.save();
+  return section;
+};
+
+const deleteDenetimci = async (sectionId) => {
+  const section = await getSectionsById(sectionId);
+  if (!section) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Sözlük bulunamadı');
+  }
+  section.controlAssigned = null;
+  section.isControlled = false;
+  await section.save();
+  return section;
+};
+
 module.exports = {
   createSections,
   querySections,
@@ -177,4 +199,6 @@ module.exports = {
   sectionDelivered,
   sectionControlled,
   getNextSectionsById,
+  deleteDenetimci,
+  deleteKuluckaci,
 };

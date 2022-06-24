@@ -90,6 +90,18 @@ const deleteSection = {
   }),
 };
 
+const deleteKuluckaci = {
+  params: Joi.object().keys({
+    sectionId: Joi.string().custom(objectId),
+  }),
+};
+
+const deleteDenetimci = {
+  params: Joi.object().keys({
+    sectionId: Joi.string().custom(objectId),
+  }),
+};
+
 module.exports = {
   createSection,
   getSections,
@@ -101,4 +113,6 @@ module.exports = {
   sectionDelivered,
   deleteSection,
   getNextSectionById,
+  deleteKuluckaci,
+  deleteDenetimci,
 };

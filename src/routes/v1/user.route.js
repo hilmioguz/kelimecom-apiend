@@ -16,6 +16,9 @@ router
   .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
   .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
+router
+  .route('/setikaldir/:userId')
+  .delete(auth('manageUsers'), validate(userValidation.deleteSet), userController.deleteSet);
 
 router
   .route('/toplukullanici')

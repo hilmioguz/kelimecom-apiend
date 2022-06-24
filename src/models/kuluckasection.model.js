@@ -10,6 +10,7 @@ const kuluckasectionSchema = mongoose.Schema(
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'Kuluckadictionaries',
+      autopopulate: { maxDepth: 1 },
     },
     name: {
       type: String,
