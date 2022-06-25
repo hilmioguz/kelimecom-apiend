@@ -54,7 +54,6 @@ const sectionDelivered = {
 const sectionControlled = {
   params: Joi.object().keys({
     sectionId: Joi.string().custom(objectId),
-    userSubmitted: Joi.string().custom(objectId),
   }),
 };
 const getSectionByName = {

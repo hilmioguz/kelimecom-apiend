@@ -110,10 +110,11 @@ const sectionDelivered = async (sectionId, userId) => {
   await section.save();
   try {
     await Kuluckamadde.updateMany(
-      { 'whichDict.userSubmitted': ObjectId(userId) },
+      { 'whichDict.kuluckaSectionId': ObjectId(sectionId) },
       {
         $set: {
           'whichDict.$.isDelivered': true,
+          'whichDict.$.userSubmitted': ObjectId(userId),
         },
       },
       { upsert: true }
@@ -125,7 +126,7 @@ const sectionDelivered = async (sectionId, userId) => {
 
   return user;
 };
-const sectionControlled = async (sectionId, userId, userSubmitted) => {
+const sectionControlled = async (sectionId, userId) => {
   const section = await getSectionsById(sectionId);
   if (!section) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Set bulunamadı');
@@ -138,10 +139,11 @@ const sectionControlled = async (sectionId, userId, userSubmitted) => {
   await section.save();
   try {
     await Kuluckamadde.updateMany(
-      { 'whichDict.userConfirmed': ObjectId(userSubmitted) },
+      { 'whichDict.kuluckaSectionId': ObjectId(sectionId) },
       {
         $set: {
           'whichDict.$.isControlled': true,
+          'whichDict.$.userConfirmed': ObjectId(userId),
         },
       },
       { upsert: true }

@@ -37,7 +37,7 @@ const sectionDelivered = catchAsync(async (req, res) => {
   res.send(user);
 });
 const sectionControlled = catchAsync(async (req, res) => {
-  const user = await kuluckasectionService.sectionControlled(req.params.sectionId, req.user.id, req.params.userSubmitted);
+  const user = await kuluckasectionService.sectionControlled(req.params.sectionId, req.user.id);
   res.send(user);
 });
 const getSectionByName = catchAsync(async (req, res) => {

@@ -54,7 +54,7 @@ router
   .post(auth('authorized'), validate(kuluckasectionValidation.sectionDelivered), kuluckasectionController.sectionDelivered);
 
 router
-  .route('/kontroledildi/:sectionId/:userSubmitted')
+  .route('/kontroledildi/:sectionId')
   .post(
     auth('authorized'),
     validate(kuluckasectionValidation.sectionControlled),
