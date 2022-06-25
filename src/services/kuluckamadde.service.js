@@ -124,7 +124,6 @@ const getMyOwnMaddeEntries = async (userId, kuluckaSectionId) => {
         'whichDict.isDelivered': false,
         'whichDict.isControlled': false,
         'whichDict.kuluckaSectionId': ObjectId(kuluckaSectionId),
-        'whichDict.userSubmitted': ObjectId(userId),
       },
     },
     {
