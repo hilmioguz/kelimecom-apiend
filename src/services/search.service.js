@@ -4,6 +4,7 @@ const httpStatus = require('http-status');
 const mongoose = require('mongoose');
 const { Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
+// const logger = require('../config/logger');
 
 // eslint-disable-next-line no-unused-vars
 const { ObjectId } = mongoose.Types;
@@ -31,6 +32,7 @@ const rawQueryKelimeler = async (options) => {
   const conditionalMatch2 = {};
   const conditionalMatch3 = {};
   let { searchTerm } = options;
+  searchTerm = decodeURIComponent(searchTerm);
   const { searchType, searchFilter } = options;
 
   let hiddenTur = '';
@@ -46,11 +48,26 @@ const rawQueryKelimeler = async (options) => {
 
   if (searchType === 'exact') {
     if (['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
-      conditionalMatch.madde = {
-        $regex: new RegExp(`^${searchTerm}$`, 'i'),
-      };
+      conditionalMatch.$or = [
+        {
+          madde: {
+            $regex: new RegExp(`^${searchTerm}$`, 'i'),
+          },
+        },
+        {
+          digeryazim: { $in: [searchTerm] },
+        },
+      ];
     } else {
-      conditionalMatch.madde = searchTerm;
+      conditionalMatch.$or = [
+        {
+          madde: searchTerm,
+        },
+        {
+          digeryazim: { $in: [searchTerm] },
+        },
+      ];
+      // conditionalMatch.madde = searchTerm;
     }
   } else if (searchType === 'exactwithdash') {
     conditionalMatch.$or = [
@@ -96,9 +113,16 @@ const rawQueryKelimeler = async (options) => {
       $regex: new RegExp(`^${searchTerm}$`, 'i'),
     };
   } else {
-    conditionalMatch.madde = {
-      $regex: new RegExp(`^${searchTerm}`, 'i'),
-    };
+    conditionalMatch.$or = [
+      {
+        madde: {
+          $regex: new RegExp(`^${searchTerm}`, 'i'),
+        },
+      },
+      {
+        digeryazim: { $in: [searchTerm] },
+      },
+    ];
   }
   if (hiddenTur) {
     conditionalMatch2['whichDict.tur'] = { $in: [hiddenTur] };
@@ -131,26 +155,27 @@ const rawQueryKelimeler = async (options) => {
       langOrders.push({ case: { $eq: ['$dict.lang', dil] }, then: index });
     });
   }
-  let kelimeuzunlugu = searchTerm.length;
+  // let kelimeuzunlugu = searchTerm.length;
 
-  if (['*'].some((char) => searchTerm.includes(char))) {
-    // eslint-disable-next-line no-invalid-regexp
-    const xcount = searchTerm.match(/([*])/g);
-    // eslint-disable-next-line no-console
-    // console.log('xcount', xcount, xcount.length);
-    if (xcount) {
-      kelimeuzunlugu -= xcount.length * 2;
-    }
-  }
-  if (['(', ')'].some((char) => searchTerm.includes(char))) {
-    const orcount = searchTerm.match(/(\([\u0020-\u0FFF|]+\))/g);
-    // eslint-disable-next-line no-console
-    if (orcount && orcount[0]) {
-      kelimeuzunlugu -= orcount[0].length - 1;
-    }
-  }
+  // if (['*'].some((char) => searchTerm.includes(char))) {
+  //   // eslint-disable-next-line no-invalid-regexp
+  //   const xcount = searchTerm.match(/([*])/g);
+  //   // eslint-disable-next-line no-console
+  //   // console.log('xcount', xcount, xcount.length);
+  //   if (xcount) {
+  //     kelimeuzunlugu -= xcount.length * 2;
+  //   }
+  // }
+  // if (['(', ')'].some((char) => searchTerm.includes(char))) {
+  //   const orcount = searchTerm.match(/(\([\u0020-\u0FFF|]+\))/g);
+  //   // eslint-disable-next-line no-console
+  //   if (orcount && orcount[0]) {
+  //     kelimeuzunlugu -= orcount[0].length - 1;
+  //   }
+  // }
   // eslint-disable-next-line no-console
-  conditionalMatch3.maddeLength = { $gte: kelimeuzunlugu };
+  // console.log('kelimeuzun:', kelimeuzunlugu);
+  // conditionalMatch3.maddeLength = { $gte: kelimeuzunlugu };
 
   const groupCond = {
     $group: {
@@ -239,22 +264,22 @@ const rawQueryKelimeler = async (options) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-      {
-        $lookup: {
-          from: 'maddes',
-          localField: 'whichDict.karsiMaddeId',
-          foreignField: '_id',
-          as: 'karsi',
-        },
-      },
-      {
-        $lookup: {
-          from: 'maddes',
-          localField: 'whichDict.digerMaddeId',
-          foreignField: '_id',
-          as: 'diger',
-        },
-      },
+      // {
+      //   $lookup: {
+      //     from: 'maddes',
+      //     localField: 'whichDict.karsiMaddeId',
+      //     foreignField: '_id',
+      //     as: 'karsi',
+      //   },
+      // },
+      // {
+      //   $lookup: {
+      //     from: 'maddes',
+      //     localField: 'whichDict.digerMaddeId',
+      //     foreignField: '_id',
+      //     as: 'diger',
+      //   },
+      // },
       {
         $match: conditionalMatch2,
       },
@@ -284,14 +309,14 @@ const rawQueryKelimeler = async (options) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-      {
-        $lookup: {
-          from: 'maddes',
-          localField: 'whichDict.karsiMaddeId',
-          foreignField: '_id',
-          as: 'karsi',
-        },
-      },
+      // {
+      //   $lookup: {
+      //     from: 'maddes',
+      //     localField: 'whichDict.karsiMaddeId',
+      //     foreignField: '_id',
+      //     as: 'karsi',
+      //   },
+      // },
       {
         $match: conditionalMatch2,
       },
@@ -326,7 +351,7 @@ const rawQueryKelimeler = async (options) => {
         $group: {
           _id: '$_id',
           madde: { $first: '$madde' },
-          karsimadde: { $first: '$karsimadde' },
+          // karsimadde: { $first: '$karsimadde' },
           lang: { $first: '$lang' },
           langOrder: { $first: '$langOrder' },
           maddeLength: { $first: '$maddeLength' },
@@ -382,8 +407,8 @@ const rawQueryKelimeler = async (options) => {
   }
 
   // condition.push({ allowDiskUse: true });
-  // eslint-disable-next-line no-console
-  // console.log('final condition:', JSON.stringify(condition));
+  // logger.info(`searchType: ${searchType}`);
+  // logger.info(`final condition:${JSON.stringify(condition)}`);
 
   const agg = Madde.aggregate(condition).allowDiskUse(true);
 
@@ -536,7 +561,7 @@ const getKelimeByMadde = async (options) => {
     aggArray.push(
       {
         $match: {
-          madde: options.searchTerm,
+          // madde: options.searchTerm,
           _id: ObjectId(realmaddeId),
         },
       },
@@ -594,14 +619,14 @@ const getKelimeByMadde = async (options) => {
         $addFields: {
           maddeLength: { $strLenCP: '$madde' },
         },
-      },
-      {
-        $lookup: {
-          from: 'maddes',
-          localField: 'whichDict.karsiMaddeId',
-          foreignField: '_id',
-          as: 'karsi',
-        },
+        // },
+        // {
+        //   $lookup: {
+        //     from: 'maddes',
+        //     localField: 'whichDict.karsiMaddeId',
+        //     foreignField: '_id',
+        //     as: 'karsi',
+        //   },
       }
     );
   }
@@ -675,15 +700,15 @@ const getKelimeByMaddeExceptItself = async (options) => {
       $addFields: {
         maddeLength: { $strLenCP: '$madde' },
       },
-    },
-    {
-      $lookup: {
-        from: 'maddes',
-        localField: 'whichDict.karsiMaddeId',
-        foreignField: '_id',
-        as: 'karsi',
-      },
     }
+    // {
+    //   $lookup: {
+    //     from: 'maddes',
+    //     localField: 'whichDict.karsiMaddeId',
+    //     foreignField: '_id',
+    //     as: 'karsi',
+    //   },
+    // }
   );
 
   const suboptions = { sort: 'maddeLength' };

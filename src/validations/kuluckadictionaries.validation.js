@@ -34,6 +34,7 @@ const createDictionary = {
     kisaltmalarUrl: Joi.string().optional(),
     hangiAsama: Joi.number().optional(),
     isSectionCreated: Joi.boolean().optional(),
+    isCombined: Joi.boolean().optional(),
   }),
 };
 
@@ -85,7 +86,7 @@ const updateDictionary = {
       mla_sozluk_ismi: Joi.string().optional(),
       mla_tarih_siteadi: Joi.string().optional(),
       mla_yazar: Joi.string().optional(),
-      cilt: Joi.string().required(),
+      cilt: Joi.string().optional(),
       azureUrl: Joi.string().optional(),
       imageFilenameSytanx: Joi.string().optional(),
       sectionedBy: Joi.number().optional(),
@@ -97,6 +98,7 @@ const updateDictionary = {
       kisaltmalarUrl: Joi.string().optional(),
       hangiAsama: Joi.number().optional(),
       isSectionCreated: Joi.boolean().optional(),
+      isCombined: Joi.boolean().optional(),
     })
     .min(1),
 };

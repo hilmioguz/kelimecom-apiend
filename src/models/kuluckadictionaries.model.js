@@ -97,6 +97,10 @@ const kuluckadictionarySchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isCombined: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

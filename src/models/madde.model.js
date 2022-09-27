@@ -14,6 +14,12 @@ const maddeSchema = mongoose.Schema(
       unique: true,
       trim: true,
     },
+    digeryazim: [
+      {
+        type: String,
+        default: '',
+      },
+    ],
     whichDict: [
       {
         id: {
@@ -23,16 +29,6 @@ const maddeSchema = mongoose.Schema(
         anlam: {
           type: String,
           required: true,
-        },
-        digerMaddeId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Madde',
-          autopopulate: { maxDepth: 1 },
-        },
-        karsiMaddeId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Madde',
-          autopopulate: { maxDepth: 1 },
         },
         dictId: {
           type: Schema.Types.ObjectId,
@@ -71,9 +67,111 @@ const maddeSchema = mongoose.Schema(
             ],
           },
         ],
-        koken: [
+        kokleri: [
           {
             type: String,
+          },
+        ],
+        sesDosyasi: {
+          type: String,
+          default: '',
+        },
+        location: {
+          type: [Number],
+          default: [],
+        },
+        eserindili: {
+          type: String,
+          default: '',
+        },
+        eserindonemi: {
+          type: String,
+          default: '',
+        },
+        eserinyili: {
+          type: String,
+          default: '',
+        },
+        eserinyazari: {
+          type: String,
+          default: '',
+        },
+        esertxt: {
+          type: String,
+          default: '',
+        },
+        dili: {
+          type: String,
+          default: '',
+        },
+        kokendili: {
+          type: String,
+          default: '',
+        },
+        kokeni: {
+          type: String,
+          default: '',
+        },
+        karsi: [
+          {
+            dili: {
+              type: String,
+              default: '',
+            },
+            madde: {
+              type: String,
+              default: '',
+            },
+            anlam: {
+              type: String,
+              default: '',
+            },
+            sesDosyasi: {
+              type: String,
+              default: '',
+            },
+            digeryazim: [
+              {
+                type: String,
+                default: '',
+              },
+            ],
+          },
+        ],
+        sozusoyleyen: {
+          type: String,
+          default: '',
+        },
+        sekil: [
+          {
+            aciklama: {
+              type: String,
+              default: '',
+            },
+            url: {
+              type: String,
+              default: '',
+            },
+          },
+        ],
+        tarihcesi: [
+          {
+            baslangic: {
+              type: String,
+              default: '',
+            },
+            bitis: {
+              type: String,
+              default: '',
+            },
+            adi: {
+              type: String,
+              default: '',
+            },
+            hakimiyet: {
+              type: String,
+              default: '',
+            },
           },
         ],
         cinsiyet: [
@@ -133,6 +231,10 @@ const maddeSchema = mongoose.Schema(
             ref: 'User',
           },
         ],
+        bulunduguSayfalar: {
+          type: String,
+          default: '',
+        },
       },
     ],
   },

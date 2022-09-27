@@ -4,12 +4,11 @@ const { objectId } = require('./custom.validation');
 const whichDictSchema = {
   anlam: Joi.string(),
   dictId: Joi.required().custom(objectId),
-  digerMaddeId: Joi.custom(objectId).optional(),
-  karsiMaddeId: Joi.custom(objectId).optional(),
+  // karsiMaddeId: Joi.custom(objectId).optional(),
   alttur: Joi.array().items(Joi.string()).optional(),
   tur: Joi.array().items(Joi.string()).optional(),
   tip: Joi.array().items(Joi.string()).optional(),
-  koken: Joi.array().items(Joi.string()).optional(),
+  kokleri: Joi.array().items(Joi.string()).optional(),
   cinsiyet: Joi.array().items(Joi.string()).optional(),
   bicim: Joi.array().items(Joi.string()).optional(),
   sinif: Joi.array().items(Joi.string()).optional(),
@@ -19,11 +18,53 @@ const whichDictSchema = {
   zitanlam: Joi.array().items(Joi.string()).optional(),
   esanlam: Joi.array().items(Joi.string()).optional(),
   telaffuz: Joi.array().items(Joi.string()).optional(),
+  bulunduguSayfalar: Joi.string().allow('').empty().optional(),
+  sesDosyasi: Joi.string().empty().allow('').optional(),
+  eserindili: Joi.string().allow('').empty().optional(),
+  eserindonemi: Joi.string().allow('').empty().optional(),
+  eserinyili: Joi.string().allow('').empty().optional(),
+  eserinyazari: Joi.string().allow('').empty().optional(),
+  esertxt: Joi.string().allow('').empty().optional(),
+  dili: Joi.string().allow('').empty().optional(),
+  kokendili: Joi.string().allow('').empty().optional(),
+  kokeni: Joi.string().allow('').empty().optional(),
+  sozusoyleyen: Joi.string().allow('').empty().optional(),
+  location: Joi.array().ordered(Joi.number().min(-180).max(180).optional(), Joi.number().min(-90).max(90).optional()),
+  karsi: Joi.array()
+    .items(
+      Joi.object().keys({
+        dili: Joi.string(),
+        madde: Joi.string(),
+        anlam: Joi.string().empty().allow('').optional(),
+        sesDosyasi: Joi.string().empty().allow('').optional(),
+        digeryazim: Joi.array().items(Joi.string().empty().allow('').optional()).optional(),
+      })
+    )
+    .optional(),
+  sekil: Joi.array()
+    .items(
+      Joi.object().keys({
+        aciklama: Joi.string(),
+        url: Joi.string(),
+      })
+    )
+    .optional(),
+  tarihcesi: Joi.array()
+    .items(
+      Joi.object().keys({
+        baslangic: Joi.string(),
+        bitis: Joi.string(),
+        adi: Joi.string(),
+        hakimiyet: Joi.string(),
+      })
+    )
+    .optional(),
 };
 
 const createMadde = {
   body: Joi.object().keys({
     madde: Joi.string(),
+    digeryazim: Joi.array().items(Joi.string().empty().optional()).optional(),
     whichDict: Joi.array().min(1).items(Joi.object(whichDictSchema)).required(),
   }),
 };
@@ -59,6 +100,7 @@ const updateMadde = {
   body: Joi.object()
     .keys({
       madde: Joi.string(),
+      digeryazim: Joi.array().items(Joi.string().empty().optional()).optional(),
       whichDict: Joi.array().min(1).items(Joi.object(whichDictSchema)).required(),
     })
     .min(1),
@@ -82,14 +124,14 @@ const updateSubMadde = {
   }),
   body: Joi.object().keys({
     id: Joi.required().custom(objectId),
+    digeryazim: Joi.array().items(Joi.string().empty().optional()).optional(),
     anlam: Joi.string(),
     dictId: Joi.required().custom(objectId),
-    digerMaddeId: Joi.custom(objectId).optional(),
-    karsiMaddeId: Joi.custom(objectId).optional(),
+    // karsiMaddeId: Joi.custom(objectId).optional(),
     alttur: Joi.array().items(Joi.string()).optional(),
     tur: Joi.array().items(Joi.string()).optional(),
     tip: Joi.array().items(Joi.string()).optional(),
-    koken: Joi.array().items(Joi.string()).optional(),
+    kokleri: Joi.array().items(Joi.string()).optional(),
     cinsiyet: Joi.array().items(Joi.string()).optional(),
     bicim: Joi.array().items(Joi.string()).optional(),
     sinif: Joi.array().items(Joi.string()).optional(),
@@ -99,6 +141,48 @@ const updateSubMadde = {
     zitanlam: Joi.array().items(Joi.string()).optional(),
     esanlam: Joi.array().items(Joi.string()).optional(),
     telaffuz: Joi.array().items(Joi.string()).optional(),
+    bulunduguSayfalar: Joi.string().allow('').empty().optional(),
+    sesDosyasi: Joi.string().empty().allow('').empty().optional(),
+    eserindili: Joi.string().allow('').empty().optional(),
+    eserindonemi: Joi.string().allow('').empty().optional(),
+    eserinyili: Joi.string().allow('').empty().optional(),
+    eserinyazari: Joi.string().allow('').empty().optional(),
+    esertxt: Joi.string().allow('').empty().optional(),
+    dili: Joi.string().allow('').empty().optional(),
+    kokendili: Joi.string().allow('').empty().optional(),
+    kokeni: Joi.string().allow('').empty().optional(),
+    sozusoyleyen: Joi.string().allow('').empty().optional(),
+    location: Joi.array().ordered(Joi.number().min(-180).max(180).optional(), Joi.number().min(-90).max(90).optional()),
+    karsi: Joi.array()
+      .items(
+        Joi.object().keys({
+          _id: Joi.required().custom(objectId),
+          dili: Joi.string(),
+          madde: Joi.string(),
+          anlam: Joi.string().empty().allow('').empty().optional(),
+          sesDosyasi: Joi.string().empty().allow('').empty().optional(),
+          digeryazim: Joi.array().items(Joi.string().empty().allow('').empty().optional()).optional(),
+        })
+      )
+      .optional(),
+    sekil: Joi.array()
+      .items(
+        Joi.object().keys({
+          aciklama: Joi.string(),
+          url: Joi.string(),
+        })
+      )
+      .optional(),
+    tarihcesi: Joi.array()
+      .items(
+        Joi.object().keys({
+          baslangic: Joi.string(),
+          bitis: Joi.string(),
+          adi: Joi.string(),
+          hakimiyet: Joi.string(),
+        })
+      )
+      .optional(),
   }),
 };
 

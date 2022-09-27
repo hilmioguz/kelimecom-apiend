@@ -21,6 +21,10 @@ router
     dictionaryController.deleteDictionary
   );
 
+router
+  .route('/stat/:dictId')
+  .get(auth('freeZone'), validate(dictionaryValidation.getDictionaryById), dictionaryController.getDictionaryStatById);
+
 module.exports = router;
 
 /**

@@ -7,6 +7,75 @@ const ApiError = require('../utils/ApiError');
 // eslint-disable-next-line no-unused-vars
 const { ObjectId } = mongoose.Types;
 
+const mapAsync = (array, callbackfn) => {
+  return Promise.all(array.map(callbackfn));
+};
+
+const karsiOnly = (row) => {
+  return new Promise((res) => {
+    setTimeout(async () => {
+      res(
+        await Promise.all(
+          row.whichDict.map(
+            async (whichDict) =>
+              whichDict &&
+              whichDict.karsi &&
+              whichDict.karsi.length &&
+              Promise.all(
+                whichDict.karsi.map((karsi) => ({
+                  digeryazim: karsi.digeryazim || [],
+                  madde: karsi.madde,
+                  whichDict: [
+                    {
+                      id: new ObjectId(),
+                      anlam: whichDict.anlam,
+                      dictId: whichDict.dictId,
+                      tip: whichDict.tip,
+                      tur: whichDict.tur,
+                      dili: karsi.dili,
+                      alttur: whichDict.alttur,
+                      fonetik: whichDict.fonetik,
+                      heceliyazim: whichDict.heceliyazim,
+                      sesDosyasi: karsi.sesDosyasi,
+                      cinsiyet: karsi.cinsiyet,
+                      location: whichDict.location,
+                      eserindili: whichDict.eserindili,
+                      eserindonemi: whichDict.eserindonemi,
+                      eserinyili: whichDict.eserinyili,
+                      eserinyazari: whichDict.eserinyazari,
+                      esertxt: whichDict.esertxt,
+                      kokeni: whichDict.kokeni,
+                      kokleri: whichDict.kokleri,
+                      kokendili: whichDict.kokendili,
+                      sozusoyleyen: whichDict.sozusoyleyen,
+                      telaffuz: whichDict.telaffuz,
+                      sinif: whichDict.sinif,
+                      bicim: whichDict.bicim,
+                      transkripsiyon: whichDict.transkripsiyon,
+                      zitanlam: whichDict.zitanlam,
+                      esanlam: whichDict.esanlam,
+                      sekil: whichDict.sekil,
+                      tarihcesi: whichDict.tarihcesi,
+                      bulunduguSayfalar: whichDict.bulunduguSayfalar,
+                      karsi: [
+                        {
+                          madde: row.madde,
+                          digeryazim: row.digeryazim,
+                          anlam: '',
+                          dili: whichDict.dili,
+                          sesDosyasi: whichDict.sesDosyasi,
+                        },
+                      ],
+                    },
+                  ],
+                }))
+              )
+          )
+        )
+      );
+    }, 1);
+  });
+};
 const createSubMadde = async (maddeId, maddeBody) => {
   const newmadde = maddeBody;
   newmadde.id = new ObjectId();
@@ -119,15 +188,67 @@ const updateMaddeById = async (maddeId, updateBody) => {
 const mergeSubMadde = async (maddeId, updateBody) => {
   let fmadde;
   try {
-    fmadde = await Gundem.findOne({ _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) });
+    fmadde = await Gundem.findOne({ _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) })
+      .lean()
+      .exec();
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log('eroror1:', error);
     throw new ApiError(httpStatus.NOT_FOUND, error);
   }
 
+  if (fmadde) {
+    const bulkOps = await Promise.all(
+      [fmadde].map(async (row) => ({
+        updateOne: {
+          filter: { madde: row.madde },
+          update: {
+            $addToSet: {
+              digeryazim: { $each: row.digeryazim || [] },
+              whichDict: { $each: row.whichDict || [] },
+            },
+          },
+          upsert: true,
+        },
+      }))
+    );
+    await Madde.collection
+      .bulkWrite(bulkOps)
+      .then((results) => results)
+      .catch((error) => {
+        throw new ApiError(httpStatus.BAD_REQUEST, error.message);
+      });
+  }
+  let m = await mapAsync([fmadde], karsiOnly);
+  m = m.flat(Infinity).filter(Boolean);
+  if (m && m.length) {
+    const bulkOpsKarsi = await Promise.all(
+      m.map(async (row) => ({
+        updateOne: {
+          filter: { madde: row.madde },
+          update: {
+            $addToSet: {
+              digeryazim: { $each: row.digeryazim || [] },
+              whichDict: { $each: row.whichDict || [] },
+            },
+          },
+          upsert: true,
+        },
+      }))
+    );
+
+    // eslint-disable-next-line no-console
+    await Madde.collection
+      .bulkWrite(bulkOpsKarsi)
+      .then((results) => results)
+      .catch((error) => {
+        throw new ApiError(httpStatus.BAD_REQUEST, error.message);
+      });
+  }
+
+  /*
   const temp = [...fmadde.whichDict];
-  const madde = temp.find((x) => x.id.toString() === updateBody.id.toString());
+  const madde = temp.find((x) => x.id && x.id.toString() === updateBody.id.toString());
   const updatepayload = {
     anlam: madde.anlam,
     dictId: madde.dictId._id,
@@ -167,14 +288,14 @@ const mergeSubMadde = async (maddeId, updateBody) => {
       telaffuz: madde.telaffuz,
     },
   ];
-  if (madde.digerMaddeId && madde.digerMaddeId._id) {
-    updatepayload['whichDict.$.digerMaddeId'] = madde.digerMaddeId._id;
-    newpayload['whichDict[0].digerMaddeId'] = madde.digerMaddeId._id;
-  }
-  if (madde.karsiMaddeId && madde.karsiMaddeId._id) {
-    updatepayload['whichDict.$.karsiMaddeId'] = madde.karsiMaddeId._id;
-    newpayload['whichDict[0].karsiMaddeId'] = madde.karsiMaddeId._id;
-  }
+  // if (madde.digerMaddeId && madde.digerMaddeId._id) {
+  //   updatepayload['whichDict.$.digerMaddeId'] = madde.digerMaddeId._id;
+  //   newpayload['whichDict[0].digerMaddeId'] = madde.digerMaddeId._id;
+  // }
+  // if (madde.karsiMaddeId && madde.karsiMaddeId._id) {
+  //   updatepayload['whichDict.$.karsiMaddeId'] = madde.karsiMaddeId._id;
+  //   newpayload['whichDict[0].karsiMaddeId'] = madde.karsiMaddeId._id;
+  // }
   let newmadde;
   let founded;
 
@@ -202,10 +323,7 @@ const mergeSubMadde = async (maddeId, updateBody) => {
     console.log(('YENİ MADDEMİŞZ', newpayload));
     newmadde = await Madde.create(newpayload);
   }
-
-  if (!newmadde) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Madde Birleştirilemedi');
-  }
+*/
 
   const gundemupdate = await Gundem.updateOne(
     { _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) },
@@ -221,7 +339,7 @@ const mergeSubMadde = async (maddeId, updateBody) => {
   if (!gundemupdate) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Gündem birleştirme sonucu güncellenemedi.');
   }
-  return newmadde;
+  return gundemupdate;
 };
 
 const updateSubMaddeById = async (maddeId, updateBody) => {
@@ -229,10 +347,9 @@ const updateSubMaddeById = async (maddeId, updateBody) => {
     { _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) },
     {
       $set: {
+        digeryazim: updateBody.digeryazim,
         'whichDict.$.anlam': updateBody.anlam,
         'whichDict.$.dictId': updateBody.dictId,
-        'whichDict.$.digerMaddeId': updateBody.digerMaddeId,
-        'whichDict.$.karsiMaddeId': updateBody.karsiMaddeId,
         'whichDict.$.tur': updateBody.tur,
         'whichDict.$.alttur': updateBody.alttur,
         'whichDict.$.tip': updateBody.tip,
@@ -250,6 +367,22 @@ const updateSubMaddeById = async (maddeId, updateBody) => {
         'whichDict.$.userConfirmed': updateBody.userConfirmed,
         'whichDict.$.userSubmitted': updateBody.userSubmitted,
         'whichDict.$.updatedAt': Date.now(),
+        'whichDict.$.kokleri': updateBody.kokleri,
+        'whichDict.$.sesDosyasi': updateBody.sesDosyasi,
+        'whichDict.$.location': updateBody.location,
+        'whichDict.$.eserindili': updateBody.eserindili,
+        'whichDict.$.kokeni': updateBody.kokeni,
+        'whichDict.$.eserindonemi': updateBody.eserindonemi,
+        'whichDict.$.eserinyili': updateBody.eserinyili,
+        'whichDict.$.eserinyazari': updateBody.eserinyazari,
+        'whichDict.$.esertxt': updateBody.esertxt,
+        'whichDict.$.dili': updateBody.dili,
+        'whichDict.$.kokendili': updateBody.kokendili,
+        'whichDict.$.karsi': updateBody.karsi,
+        'whichDict.$.sozusoyleyen': updateBody.sozusoyleyen,
+        'whichDict.$.sekil': updateBody.sekil,
+        'whichDict.$.tarihcesi': updateBody.tarihcesi,
+        'whichDict.$.bulunduguSayfalar': updateBody.bulunduguSayfalar,
       },
     },
     { upsert: true }

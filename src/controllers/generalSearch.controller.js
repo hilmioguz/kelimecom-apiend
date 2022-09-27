@@ -87,7 +87,7 @@ const getKelimeById = catchAsync(async (req, res) => {
 });
 
 const getKelimeByMadde = catchAsync(async (req, res) => {
-  let aranantext = req.params.madde;
+  let aranantext = decodeURIComponent(req.params.madde);
   const arananId = req.params.id;
   const { dil, tip, sozluk } = req.params;
 
@@ -110,7 +110,7 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
     } else {
       searchedBy = req.params.clientIp;
     }
-    payload.searchTerm = req.params.madde;
+    payload.searchTerm = decodeURIComponent(req.params.madde);
     payload.searchType = options.searchType;
     payload.searchedBy = searchedBy;
     payload.secilenDil = dil;

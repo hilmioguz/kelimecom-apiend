@@ -1,6 +1,79 @@
 const httpStatus = require('http-status');
-const { Kuluckadictionaries, Kuluckasection, Dictionaries } = require('../models');
+const mongoose = require('mongoose');
+const { Kuluckadictionaries, Kuluckasection, Dictionaries, Kuluckamadde, Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
+
+const { ObjectId } = mongoose.Types;
+
+const mapAsync = (array, callbackfn) => {
+  return Promise.all(array.map(callbackfn));
+};
+
+const karsiOnly = (row) => {
+  return new Promise((res) => {
+    setTimeout(async () => {
+      res(
+        await Promise.all(
+          row.whichDict.map(
+            async (whichDict) =>
+              whichDict &&
+              whichDict.karsi &&
+              whichDict.karsi.length &&
+              Promise.all(
+                whichDict.karsi.map((karsi) => ({
+                  digeryazim: karsi.digeryazim || [],
+                  madde: karsi.madde,
+                  whichDict: [
+                    {
+                      id: new ObjectId(),
+                      anlam: whichDict.anlam,
+                      dictId: whichDict.dictId,
+                      tip: whichDict.tip,
+                      tur: whichDict.tur,
+                      dili: karsi.dili,
+                      alttur: whichDict.alttur,
+                      fonetik: whichDict.fonetik,
+                      heceliyazim: whichDict.heceliyazim,
+                      sesDosyasi: karsi.sesDosyasi,
+                      cinsiyet: karsi.cinsiyet,
+                      location: whichDict.location,
+                      eserindili: whichDict.eserindili,
+                      eserindonemi: whichDict.eserindonemi,
+                      eserinyili: whichDict.eserinyili,
+                      eserinyazari: whichDict.eserinyazari,
+                      esertxt: whichDict.esertxt,
+                      kokeni: whichDict.kokeni,
+                      kokleri: whichDict.kokleri,
+                      kokendili: whichDict.kokendili,
+                      sozusoyleyen: whichDict.sozusoyleyen,
+                      telaffuz: whichDict.telaffuz,
+                      sinif: whichDict.sinif,
+                      bicim: whichDict.bicim,
+                      transkripsiyon: whichDict.transkripsiyon,
+                      zitanlam: whichDict.zitanlam,
+                      esanlam: whichDict.esanlam,
+                      sekil: whichDict.sekil,
+                      tarihcesi: whichDict.tarihcesi,
+                      bulunduguSayfalar: whichDict.bulunduguSayfalar,
+                      karsi: [
+                        {
+                          madde: row.madde,
+                          digeryazim: row.digeryazim,
+                          anlam: '',
+                          dili: whichDict.dili,
+                          sesDosyasi: whichDict.sesDosyasi,
+                        },
+                      ],
+                    },
+                  ],
+                }))
+              )
+          )
+        )
+      );
+    }, 1);
+  });
+};
 
 /**
  * Create a dictionary
@@ -17,6 +90,8 @@ const createDictionaries = async (dictBoddy) => {
   }
 
   const dictionary = await Kuluckadictionaries.create(dictBoddy);
+  // eslint-disable-next-line no-param-reassign
+  dictBoddy._id = dictionary.id;
   await Dictionaries.create(dictBoddy);
   if (dictionary && dictionary.id) {
     const { cilt, sectionedBy, azureUrl, imageFilenameSytanx } = dictBoddy;
@@ -65,6 +140,24 @@ const createDictionaries = async (dictBoddy) => {
   return dictionary;
 };
 
+const getDictionaryStatById = async (id) => {
+  return Kuluckamadde.aggregate([
+    {
+      $match: {
+        'whichDict.dictId': new ObjectId(id),
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
+};
+
 /**
  * Query for a dictionary
  * @param {Object} filter - Mongo filter
@@ -88,6 +181,75 @@ const getDictionariesById = async (id) => {
   return Kuluckadictionaries.findById(id);
 };
 
+const getDictionaryCheckExistanceById = async (id) => {
+  let isExist = await Dictionaries.findById(id).lean().exec();
+  if (!isExist) {
+    const body = await Kuluckadictionaries.findById(id).lean().exec();
+    isExist = await Dictionaries.create(body);
+  }
+  // eslint-disable-next-line no-console
+  console.log('isExist final:', isExist);
+  return isExist;
+};
+
+const combine = async (id) => {
+  const kuluckalar = await Kuluckamadde.find({ 'whichDict.dictId': new ObjectId(id) })
+    .lean()
+    .exec();
+  // eslint-disable-next-line no-console
+  const bulkOps = await Promise.all(
+    kuluckalar.map(async (row) => ({
+      updateOne: {
+        filter: { madde: row.madde },
+        update: {
+          $addToSet: {
+            digeryazim: { $each: row.digeryazim || [] },
+            whichDict: { $each: row.whichDict || [] },
+          },
+        },
+        upsert: true,
+      },
+    }))
+  );
+
+  const result = await Madde.collection
+    .bulkWrite(bulkOps)
+    .then((results) => results)
+    .catch((error) => {
+      throw new ApiError(httpStatus.BAD_REQUEST, error.message);
+    });
+
+  const kuluckalarK = await Kuluckamadde.find({ 'whichDict.dictId': new ObjectId(id) })
+    .lean()
+    .exec();
+
+  let m = await mapAsync(kuluckalarK, karsiOnly);
+  m = m.flat(Infinity).filter(Boolean);
+
+  const bulkOpsKarsi = await Promise.all(
+    m.map(async (row) => ({
+      updateOne: {
+        filter: { madde: row.madde },
+        update: {
+          $addToSet: {
+            digeryazim: { $each: row.digeryazim || [] },
+            whichDict: { $each: row.whichDict || [] },
+          },
+        },
+        upsert: true,
+      },
+    }))
+  );
+
+  // eslint-disable-next-line no-console
+  await Madde.collection
+    .bulkWrite(bulkOpsKarsi)
+    .then((results) => results)
+    .catch((error) => {
+      throw new ApiError(httpStatus.BAD_REQUEST, error.message);
+    });
+  return result;
+};
 /**
  * Get dictionary by name
  * @param {string} name
@@ -144,4 +306,7 @@ module.exports = {
   getDictionariesByName,
   updateDictionariesById,
   deleteDictionariesById,
+  getDictionaryStatById,
+  getDictionaryCheckExistanceById,
+  combine,
 };

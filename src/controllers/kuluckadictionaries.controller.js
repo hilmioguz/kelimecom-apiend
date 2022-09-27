@@ -23,11 +23,30 @@ const getDictionaryById = catchAsync(async (req, res) => {
   res.send(dict);
 });
 
+const getDictionaryStatById = catchAsync(async (req, res) => {
+  const dict = await kuluckadictionaryService.getDictionaryStatById(req.params.dictId);
+  if (!dict) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Sözlük bulunamadı');
+  }
+  // eslint-disable-next-line prettier/prettier, dot-notation
+  res.send(dict[0]);
+});
+
 const getDictionaryByName = catchAsync(async (req, res) => {
   const dict = await kuluckadictionaryService.getDictionariesByName(req.params.name);
   if (!dict) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Sözlük bulunamadı');
   }
+  res.send(dict);
+});
+
+const getDictionaryCheckExistanceById = catchAsync(async (req, res) => {
+  const dict = await kuluckadictionaryService.getDictionaryCheckExistanceById(req.params.dictId);
+  res.send(dict);
+});
+
+const combine = catchAsync(async (req, res) => {
+  const dict = await kuluckadictionaryService.combine(req.params.dictId);
   res.send(dict);
 });
 
@@ -48,4 +67,7 @@ module.exports = {
   getDictionaryByName,
   updateDictionary,
   deleteDictionary,
+  getDictionaryStatById,
+  getDictionaryCheckExistanceById,
+  combine,
 };

@@ -30,11 +30,11 @@ const kuluckamaddeSchema = mongoose.Schema(
           type: String,
           required: true,
         },
-        karsiMaddeId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Kuluckamadde',
-          autopopulate: { maxDepth: 1 },
-        },
+        // karsiMaddeId: {
+        //   type: Schema.Types.ObjectId,
+        //   ref: 'Kuluckamadde',
+        //   autopopulate: { maxDepth: 1 },
+        // },
         dictId: {
           type: Schema.Types.ObjectId,
           required: true,

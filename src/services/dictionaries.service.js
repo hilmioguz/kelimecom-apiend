@@ -1,7 +1,10 @@
 const httpStatus = require('http-status');
 const fetch = require('node-fetch');
-const { Dictionaries } = require('../models');
+const mongoose = require('mongoose');
+const { Dictionaries, Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
+
+const { ObjectId } = mongoose.Types;
 
 /**
  * Create a dictionary
@@ -45,6 +48,24 @@ const queryDictionaries = async (filter, options) => {
  */
 const getDictionariesById = async (id) => {
   return Dictionaries.findById(id);
+};
+
+const getDictionaryStatById = async (id) => {
+  return Madde.aggregate([
+    {
+      $match: {
+        'whichDict.dictId': new ObjectId(id),
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        count: {
+          $sum: 1,
+        },
+      },
+    },
+  ]);
 };
 
 /**
@@ -112,4 +133,5 @@ module.exports = {
   getDictionariesByName,
   updateDictionariesById,
   deleteDictionariesById,
+  getDictionaryStatById,
 };

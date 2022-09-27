@@ -68,19 +68,22 @@ app.use(errorConverter);
 
 // handle error
 app.use(errorHandler);
-const getRandomMadde = async () => {
-  const count = await Madde.countDocuments((err, cnt) => cnt);
-  // eslint-disable-next-line no-console
-  const randomnum = Math.floor(Math.random() * count);
 
-  // eslint-disable-next-line security/detect-non-literal-fs-filename
-  fs.writeFileSync(`${__dirname}/randomMadde.txt`, randomnum.toString(), { flag: 'w+' }, (err) => {
-    if (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-    }
-  });
+const getRandomMadde = async () => {
+  const dcount = await Madde.countDocuments();
+  // eslint-disable-next-line no-console
+  const randomnum = Math.floor(Math.random() * dcount);
+  if (randomnum) {
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
+    fs.writeFileSync(`${__dirname}/randomMadde.txt`, randomnum.toString(), { flag: 'w+' }, (err) => {
+      if (err) {
+        // eslint-disable-next-line no-console
+        console.error(err);
+      }
+    });
+  }
 };
+
 setTimeout(() => getRandomMadde(), 3000);
 setInterval(getRandomMadde, 1000 * 60 * 60 * 24);
 module.exports = app;

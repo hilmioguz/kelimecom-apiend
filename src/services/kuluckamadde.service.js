@@ -208,7 +208,7 @@ const mergeSubMadde = async (maddeId, updateBody) => {
   }
 
   const temp = [...fmadde.whichDict];
-  const madde = temp.find((x) => x.id.toString() === updateBody.id.toString());
+  const madde = temp.find((x) => x.id && x.id.toString() === updateBody.id.toString());
   const updatepayload = {
     anlam: madde.anlam,
     dictId: madde.dictId._id,
@@ -248,14 +248,14 @@ const mergeSubMadde = async (maddeId, updateBody) => {
       telaffuz: madde.telaffuz,
     },
   ];
-  if (madde.digerMaddeId && madde.digerMaddeId._id) {
-    updatepayload['whichDict.$.digerMaddeId'] = madde.digerMaddeId._id;
-    newpayload['whichDict[0].digerMaddeId'] = madde.digerMaddeId._id;
-  }
-  if (madde.karsiMaddeId && madde.karsiMaddeId._id) {
-    updatepayload['whichDict.$.karsiMaddeId'] = madde.karsiMaddeId._id;
-    newpayload['whichDict[0].karsiMaddeId'] = madde.karsiMaddeId._id;
-  }
+  // if (madde.digerMaddeId && madde.digerMaddeId._id) {
+  //   updatepayload['whichDict.$.digerMaddeId'] = madde.digerMaddeId._id;
+  //   newpayload['whichDict[0].digerMaddeId'] = madde.digerMaddeId._id;
+  // }
+  // if (madde.karsiMaddeId && madde.karsiMaddeId._id) {
+  //   updatepayload['whichDict.$.karsiMaddeId'] = madde.karsiMaddeId._id;
+  //   newpayload['whichDict[0].karsiMaddeId'] = madde.karsiMaddeId._id;
+  // }
   let newmadde;
   let founded;
 
@@ -310,10 +310,11 @@ const updateSubMaddeById = async (maddeId, updateBody) => {
     { _id: ObjectId(maddeId), 'whichDict.id': ObjectId(updateBody.id) },
     {
       $set: {
+        digeryazim: updateBody.digeryazim,
         'whichDict.$.anlam': updateBody.anlam,
         'whichDict.$.dictId': updateBody.dictId,
-        'whichDict.$.digerMaddeId': updateBody.digerMaddeId,
-        'whichDict.$.karsiMaddeId': updateBody.karsiMaddeId,
+        // 'whichDict.$.digerMaddeId': updateBody.digerMaddeId,
+        // 'whichDict.$.karsiMaddeId': updateBody.karsiMaddeId,
         'whichDict.$.tur': updateBody.tur,
         'whichDict.$.alttur': updateBody.alttur,
         'whichDict.$.tip': updateBody.tip,
@@ -329,9 +330,25 @@ const updateSubMaddeById = async (maddeId, updateBody) => {
         'whichDict.$.esanlam': updateBody.esanlam,
         'whichDict.$.telaffuz': updateBody.telaffuz,
         'whichDict.$.isActive': updateBody.isActive,
+        'whichDict.$.kuluckaSectionId': updateBody.kuluckaSectionId,
         'whichDict.$.userConfirmed': updateBody.userConfirmed,
         'whichDict.$.userSubmitted': updateBody.userSubmitted,
         'whichDict.$.updatedAt': Date.now(),
+        'whichDict.$.kokleri': updateBody.kokleri,
+        'whichDict.$.sesDosyasi': updateBody.sesDosyasi,
+        'whichDict.$.location': updateBody.location,
+        'whichDict.$.eserindili': updateBody.eserindili,
+        'whichDict.$.kokeni': updateBody.kokeni,
+        'whichDict.$.eserindonemi': updateBody.eserindonemi,
+        'whichDict.$.eserinyili': updateBody.eserinyili,
+        'whichDict.$.eserinyazari': updateBody.eserinyazari,
+        'whichDict.$.esertxt': updateBody.esertxt,
+        'whichDict.$.dili': updateBody.dili,
+        'whichDict.$.kokendili': updateBody.kokendili,
+        'whichDict.$.karsi': updateBody.karsi,
+        'whichDict.$.sozusoyleyen': updateBody.sozusoyleyen,
+        'whichDict.$.sekil': updateBody.sekil,
+        'whichDict.$.tarihcesi': updateBody.tarihcesi,
       },
     },
     { upsert: true }

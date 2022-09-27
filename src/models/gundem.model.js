@@ -30,11 +30,6 @@ const gundemSchema = mongoose.Schema(
           type: String,
           required: true,
         },
-        karsiMaddeId: {
-          type: Schema.Types.ObjectId,
-          ref: 'Gundem',
-          autopopulate: { maxDepth: 1 },
-        },
         dictId: {
           type: Schema.Types.ObjectId,
           required: true,

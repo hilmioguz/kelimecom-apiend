@@ -33,4 +33,27 @@ router
     kuluckadictionaryController.deleteDictionary
   );
 
+router
+  .route('/stat/:dictId')
+  .get(
+    auth('freeZone'),
+    validate(kuluckadictionaryValidation.getDictionaryById),
+    kuluckadictionaryController.getDictionaryStatById
+  );
+
+router
+  .route('/checkexistance/:dictId')
+  .get(
+    auth('manageDictionaries'),
+    validate(kuluckadictionaryValidation.getDictionaryById),
+    kuluckadictionaryController.getDictionaryCheckExistanceById
+  );
+router
+  .route('/combine/:dictId')
+  .get(
+    auth('manageDictionaries'),
+    validate(kuluckadictionaryValidation.getDictionaryById),
+    kuluckadictionaryController.combine
+  );
+
 module.exports = router;
