@@ -309,14 +309,14 @@ const rawQueryKelimeler = async (options) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-      // {
-      //   $lookup: {
-      //     from: 'maddes',
-      //     localField: 'whichDict.karsiMaddeId',
-      //     foreignField: '_id',
-      //     as: 'karsi',
-      //   },
-      // },
+      {
+        $lookup: {
+          from: 'maddes',
+          localField: 'whichDict.karsi',
+          foreignField: '_id',
+          as: 'karsi',
+        },
+      },
       {
         $match: conditionalMatch2,
       },
@@ -334,16 +334,16 @@ const rawQueryKelimeler = async (options) => {
           },
         },
       },
-      {
-        $unwind: {
-          path: '$karsi',
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      // {
+      //   $unwind: {
+      //     path: '$karsi',
+      //     preserveNullAndEmptyArrays: true,
+      //   },
+      // },
       {
         $addFields: {
           maddeLength: { $strLenCP: '$madde' },
-          karsimadde: '$karsi.madde',
+          karsimadde: '$whichDict.karsi',
           lang: '$dict.lang',
         },
       },
@@ -351,7 +351,7 @@ const rawQueryKelimeler = async (options) => {
         $group: {
           _id: '$_id',
           madde: { $first: '$madde' },
-          // karsimadde: { $first: '$karsimadde' },
+          karsimadde: { $first: '$karsimadde' },
           lang: { $first: '$lang' },
           langOrder: { $first: '$langOrder' },
           maddeLength: { $first: '$maddeLength' },
