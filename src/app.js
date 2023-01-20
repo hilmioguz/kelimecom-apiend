@@ -23,6 +23,8 @@ if (config.env !== 'test') {
   app.use(morgan.errorHandler);
 }
 
+global.__basedir = `${__dirname}`;
+
 // set security HTTP headers
 app.use(helmet());
 

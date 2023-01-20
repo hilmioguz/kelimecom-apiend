@@ -55,7 +55,7 @@ const rawQueryKelimeler = async (options) => {
           },
         },
         {
-          digeryazim: { $in: [searchTerm] },
+          digeryazim: { $in: [new RegExp(`^${searchTerm}$`, 'i')] },
         },
       ];
     } else {
@@ -113,14 +113,46 @@ const rawQueryKelimeler = async (options) => {
       $regex: new RegExp(`^${searchTerm}$`, 'i'),
     };
   } else {
+    // eslint-disable-next-line no-console
+    let searchTermConverted = searchTerm.toLowerCase();
+    searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
+    searchTermConverted = searchTermConverted.replace(/u/g, '[uûü]');
+    searchTermConverted = searchTermConverted.replace(/i/g, '[iîı]');
+    searchTermConverted = searchTermConverted.replace(/'/g, "['`]");
+    searchTermConverted = searchTermConverted.replace(/-/g, '[- ]');
+    // searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
+
+    if (!searchTermConverted.includes('[aâ]') && searchTermConverted.includes('â')) {
+      searchTermConverted = searchTermConverted.replace(/â/g, '[aâ]');
+    }
+    if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('û')) {
+      searchTermConverted = searchTermConverted.replace(/û/g, '[uûü]');
+    }
+    if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('î')) {
+      searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
+    }
+
+    if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('ü')) {
+      searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
+    }
+    if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('ı')) {
+      searchTermConverted = searchTermConverted.replace(/ı/g, '[iîı]');
+    }
+
+    if (!searchTermConverted.includes("'") && searchTermConverted.includes('`')) {
+      searchTermConverted = searchTermConverted.replace(/`/g, "['`]");
+    }
+    if (!searchTermConverted.includes('[- ]') && searchTermConverted.includes(' ')) {
+      searchTermConverted = searchTermConverted.replace(/ /g, '[- ]');
+    }
     conditionalMatch.$or = [
       {
         madde: {
-          $regex: new RegExp(`^${searchTerm}`, 'i'),
+          $regex: new RegExp(`^${searchTermConverted}`, 'i'), //  madde: { $regex: new RegExp('^kal[aâ]', 'ig')}
         },
       },
       {
-        digeryazim: { $in: [searchTerm] },
+        digeryazim: { $in: [new RegExp(`^${searchTermConverted}`, 'i')] }, // digeryazim: { $in: [/^cal[âa]y/ig]}
       },
     ];
   }

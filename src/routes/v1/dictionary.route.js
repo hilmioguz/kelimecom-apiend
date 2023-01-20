@@ -25,6 +25,13 @@ router
   .route('/stat/:dictId')
   .get(auth('freeZone'), validate(dictionaryValidation.getDictionaryById), dictionaryController.getDictionaryStatById);
 
+router
+  .route('/generateTemplate/:dictId')
+  .get(auth('manageDictionaries'), validate(dictionaryValidation.getDictionaryById), dictionaryController.generateTemplate);
+router
+  .route('/completePreview/:dictId')
+  .get(auth('manageDictionaries'), validate(dictionaryValidation.getDictionaryById), dictionaryController.completePreview);
+
 module.exports = router;
 
 /**

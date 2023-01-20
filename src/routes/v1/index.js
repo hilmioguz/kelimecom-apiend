@@ -19,7 +19,9 @@ const statsRoute = require('./stats.route');
 const generalSearchRoute = require('./generalSearch.route');
 const sitelanguageRoute = require('./sitelanguage.route');
 const fileUploadRoute = require('./fileupload.route');
+const excelRoute = require('./excel.route');
 const config = require('../../config/config');
+const previewmaddeRoute = require('./previewmadde.route');
 
 const router = express.Router();
 
@@ -112,6 +114,10 @@ const adminRoutes = [
     route: maddeRoute,
   },
   {
+    path: '/previewmadde',
+    route: previewmaddeRoute,
+  },
+  {
     path: '/gundem',
     route: gundemRoute,
   },
@@ -138,6 +144,10 @@ const adminRoutes = [
   {
     path: '/fileupload',
     route: fileUploadRoute,
+  },
+  {
+    path: '/excel',
+    route: excelRoute,
   },
   {
     path: '/kuluckadictionary',

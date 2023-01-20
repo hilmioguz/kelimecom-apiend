@@ -46,6 +46,7 @@
     "passport-jwt": "^4.0.0",
     "pm2": "^4.1.2",
     "range_check": "^2.0.4",
+    "read-excel-file": "^5.5.3",
     "swagger-jsdoc": "^6.0.8",
     "swagger-ui-express": "^4.1.6",
     "uuid": "^8.3.2",

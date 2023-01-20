@@ -47,6 +47,7 @@ const prefilter = (req, allowedfields) => {
     'isCompleted',
     'isDelivered',
     'isControlled',
+    'isUploading',
   ]);
   let filter = null;
   if (picked) {
@@ -88,6 +89,9 @@ const prefilter = (req, allowedfields) => {
     }
     if (picked.isControlled !== 'undefined' && picked.isControlled != null) {
       filter.isControlled = picked.isControlled;
+    }
+    if (picked.isUploading !== 'undefined' && picked.isUploading != null) {
+      filter.isUploading = picked.isUploading;
     }
   }
   // eslint-disable-next-line no-console

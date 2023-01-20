@@ -2,6 +2,7 @@ module.exports.Token = require('./token.model');
 module.exports.User = require('./user.model');
 module.exports.Userhistory = require('./userhistory.model');
 module.exports.Madde = require('./madde.model');
+module.exports.Previewmadde = require('./previewmadde.model');
 module.exports.Kurumlar = require('./kurumlar.model');
 module.exports.Blog = require('./blog.model');
 module.exports.Gundem = require('./gundem.model');

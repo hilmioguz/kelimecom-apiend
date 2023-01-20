@@ -5,6 +5,7 @@ module.exports.userService = require('./user.service');
 module.exports.dictionaryService = require('./dictionaries.service');
 module.exports.guestService = require('./guest.service');
 module.exports.maddeService = require('./madde.service');
+module.exports.previewmaddeService = require('./previewmadde.service');
 module.exports.gundemService = require('./gundem.service');
 module.exports.blogService = require('./blog.service');
 module.exports.invitationService = require('./invitation.service');

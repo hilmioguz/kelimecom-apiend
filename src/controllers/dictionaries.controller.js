@@ -10,7 +10,7 @@ const createDictionary = catchAsync(async (req, res) => {
 });
 
 const getDictionaries = catchAsync(async (req, res) => {
-  const { filter, options } = prefilter(req, ['name', 'code', 'lang']);
+  const { filter, options } = prefilter(req, ['name', 'code', 'lang', 'isUploading']);
   const result = await dictionaryService.queryDictionaries(filter, options);
   res.send(result);
 });
@@ -30,6 +30,24 @@ const getDictionaryStatById = catchAsync(async (req, res) => {
   }
   // eslint-disable-next-line prettier/prettier, dot-notation
   res.send(dict[0]);
+});
+
+const generateTemplate = catchAsync(async (req, res) => {
+  const dict = await dictionaryService.generateTemplate(req.params.dictId);
+  if (!dict) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Sözlük bulunamadı');
+  }
+  // eslint-disable-next-line prettier/prettier, dot-notation
+  res.send(dict);
+});
+
+const completePreview = catchAsync(async (req, res) => {
+  const dict = await dictionaryService.completePreview(req.params.dictId);
+  if (!dict) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Sözlük bulunamadı');
+  }
+  // eslint-disable-next-line prettier/prettier, dot-notation
+  res.send(dict);
 });
 
 const getDictionaryByName = catchAsync(async (req, res) => {
@@ -58,4 +76,6 @@ module.exports = {
   updateDictionary,
   deleteDictionary,
   getDictionaryStatById,
+  generateTemplate,
+  completePreview,
 };

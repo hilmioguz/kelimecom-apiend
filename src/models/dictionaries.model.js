@@ -23,9 +23,19 @@ const dictionarySchema = mongoose.Schema(
     anlamLang: {
       type: String,
     },
+    karsidil: {
+      type: String,
+    },
     isActive: {
       type: Boolean,
       default: false,
+    },
+    isUploading: {
+      type: Boolean,
+      default: false,
+    },
+    uploadPath: {
+      type: String,
     },
     isBidirectional: {
       type: Boolean,
