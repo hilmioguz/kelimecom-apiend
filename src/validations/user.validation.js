@@ -11,9 +11,19 @@ const createUser = {
       otherwise: Joi.string().required().custom(password),
     }),
     name: Joi.string().required(),
+    nickname: Joi.string().optional(),
     role: Joi.string().required().valid('user', 'moderater', 'admin'),
     clientIp: Joi.string().optional(),
-    picture: Joi.string().empty().optional(),
+    picture: Joi.string().allow('').empty().optional(),
+    facebook: Joi.string().allow('').empty().optional(),
+    twitter: Joi.string().allow('').empty().optional(),
+    linkedin: Joi.string().allow('').empty().optional(),
+    instagram: Joi.string().allow('').empty().optional(),
+    city: Joi.string().allow('').empty().optional(),
+    phoneNumber: Joi.string().allow('').empty().optional(),
+    profileMessage: Joi.string().allow('').empty().optional(),
+    saveHistory: Joi.boolean().optional(),
+    publicProfile: Joi.boolean().optional(),
     isEmailVerified: Joi.boolean().optional(),
     isActive: Joi.boolean().optional(),
     canDoKulucka: Joi.boolean().optional(),
@@ -45,7 +55,12 @@ const getUsers = {
     pagination: Joi.string().optional(),
   }),
 };
-
+const followUnfollow = {
+  params: Joi.object().keys({
+    friendId: Joi.string().custom(objectId),
+    toggle: Joi.boolean(),
+  }),
+};
 const getUser = {
   params: Joi.object().keys({
     userId: Joi.string().custom(objectId),
@@ -61,8 +76,18 @@ const updateUser = {
       email: Joi.string().email(),
       password: Joi.string().custom(password),
       name: Joi.string().optional(),
+      nickname: Joi.string().optional(),
       role: Joi.string().optional(),
-      picture: Joi.string().optional(),
+      picture: Joi.string().allow('').empty().optional(),
+      facebook: Joi.string().allow('').empty().optional(),
+      twitter: Joi.string().allow('').empty().optional(),
+      linkedin: Joi.string().allow('').empty().optional(),
+      instagram: Joi.string().allow('').empty().optional(),
+      city: Joi.string().allow('').empty().optional(),
+      phoneNumber: Joi.string().allow('').empty().optional(),
+      profileMessage: Joi.string().allow('').empty().optional(),
+      saveHistory: Joi.boolean().optional(),
+      publicProfile: Joi.boolean().optional(),
       isEmailVerified: Joi.boolean().optional(),
       isActive: Joi.boolean().optional(),
       canDoKulucka: Joi.boolean().optional(),
@@ -95,4 +120,5 @@ module.exports = {
   deleteUser,
   createMassUser,
   deleteSet,
+  followUnfollow,
 };

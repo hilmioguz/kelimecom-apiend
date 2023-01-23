@@ -57,17 +57,13 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   const payload = {};
 
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
-    let searchedBy = '';
-    if (req.user) {
-      searchedBy = req.user.id;
-    } else {
-      searchedBy = req.body.clientIp;
-    }
     payload.searchTerm = decodeURIComponent(req.body.searchTerm);
     payload.searchType = options.searchType;
-    payload.searchedBy = searchedBy;
+    payload.searchedBy = req.params.clientIp || '';
     payload.secilenDil = options.searchFilter.dil;
     payload.secilenTip = options.searchFilter.tip;
+    payload.userId = req.user && req.user.id ? req.user.id : null;
+    payload.kurumId = req.user.kurumId && req.user.kurumId.id ? req.user.kurumId : null;
   }
 
   const result = await searchService.rawQueryKelimeler(options);
@@ -104,18 +100,14 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
   const payload = {};
 
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
-    let searchedBy = '';
-    if (req.user) {
-      searchedBy = req.user.id;
-    } else {
-      searchedBy = req.params.clientIp;
-    }
     payload.searchTerm = decodeURIComponent(req.params.madde);
     payload.searchType = options.searchType;
-    payload.searchedBy = searchedBy;
+    payload.searchedBy = req.params.clientIp || '';
     payload.secilenDil = dil;
     payload.secilenTip = tip;
     payload.secilenSozluk = sozluk;
+    payload.userId = req.user && req.user.id ? req.user.id : null;
+    payload.kurumId = req.user.kurumId && req.user.kurumId.id ? req.user.kurumId : null;
   }
 
   if (req.user) {

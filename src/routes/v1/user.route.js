@@ -24,6 +24,10 @@ router
   .route('/toplukullanici')
   .post(auth('manageUsers'), validate(userValidation.createMassUser), userController.createMassUser);
 
+router
+  .route('/followUnfollow/:friendId/:toggle')
+  .post(auth('getUsers'), validate(userValidation.followUnfollow), userController.followUnfollow);
+
 module.exports = router;
 
 /**

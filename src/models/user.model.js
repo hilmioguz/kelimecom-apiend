@@ -11,6 +11,9 @@ const Packets = require('./packets.model');
 const { ObjectId } = mongoose.Types;
 
 const { Schema } = mongoose;
+function setNickname(v) {
+  return v === undefined ? this.email.split('@')[0] : v;
+}
 
 const userSchema = mongoose.Schema(
   {
@@ -58,6 +61,40 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    facebook: {
+      type: String,
+      trim: true,
+    },
+    twitter: {
+      type: String,
+      trim: true,
+    },
+    linkedin: {
+      type: String,
+      trim: true,
+    },
+    instagram: {
+      type: String,
+      trim: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    phoneNumber: {
+      type: String,
+    },
+    profileMessage: {
+      type: String,
+      trim: true,
+    },
+    friends: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        autopopulate: { maxDepth: 1 },
+      },
+    ],
     canDoKulucka: {
       type: Boolean,
       default: false,
@@ -99,6 +136,22 @@ const userSchema = mongoose.Schema(
       ref: 'Custompackets',
       default: null,
       autopopulate: true,
+    },
+    nickname: {
+      type: String,
+      required: false,
+      unique: true,
+      trim: true,
+      set: setNickname,
+      lowercase: true,
+    },
+    saveHistory: {
+      type: Boolean,
+      default: true,
+    },
+    publicProfile: {
+      type: Boolean,
+      default: true,
     },
     clientIp: {
       type: String,
@@ -176,6 +229,10 @@ userSchema.pre('save', async function (next) {
   // console.log('USER:', user);
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 8);
+  }
+  if (this.nickname === undefined) {
+    // eslint-disable-next-line prefer-destructuring
+    user.nickname = this.email.split('@')[0];
   }
   if (this.isNew) {
     const userdomain = user.email.substring(user.email.lastIndexOf('@') + 1);

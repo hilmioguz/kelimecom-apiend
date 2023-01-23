@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const tokenService = require('./token.service');
 const userService = require('./user.service');
+
 const Token = require('../models/token.model');
 const ApiError = require('../utils/ApiError');
 const { tokenTypes } = require('../config/tokens');
@@ -104,7 +105,18 @@ const editPassword = async (token, newPassword) => {
     throw new ApiError(httpStatus.UNAUTHORIZED, `Şifre sıfırlama başarısız oldu: ${error.message}`);
   }
 };
-
+const changePassword = async (token, updateBody) => {
+  const editPasswordTokenDoc = await tokenService.verifyToken(token, tokenTypes.REFRESH);
+  // eslint-disable-next-line no-console
+  // console.log('resetPasswordTokenDoc:', resetPasswordTokenDoc);
+  const user = await userService.getUserById(editPasswordTokenDoc.user);
+  const { oldpassword, newpassword } = updateBody;
+  if (!user || !(await user.isPasswordMatch(oldpassword))) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Wrong user or password');
+  }
+  await userService.updateUserById(user.id, { password: newpassword });
+  return user;
+};
 /**
  * Verify email
  * @param {string} verifyEmailToken
@@ -132,4 +144,5 @@ module.exports = {
   resetPassword,
   verifyEmail,
   editPassword,
+  changePassword,
 };

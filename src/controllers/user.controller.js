@@ -14,6 +14,18 @@ const createMassUser = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(user);
 });
 
+const followUnfollow = catchAsync(async (req, res) => {
+  const userId = req.user.id;
+  const { friendId, toggle } = req.params;
+  if (toggle) {
+    await userService.addFriend(userId, friendId);
+    res.status(200).send({ message: toggle });
+  } else {
+    await userService.deleteFriend(userId, friendId);
+    res.status(200).send({ message: toggle });
+  }
+});
+
 const getUsers = catchAsync(async (req, res) => {
   const { filter, options } = prefilter(req, ['name', 'role', 'packetId']);
   const result = await userService.queryUsers(filter, options);
@@ -51,4 +63,5 @@ module.exports = {
   deleteUser,
   deleteSet,
   createMassUser,
+  followUnfollow,
 };

@@ -65,7 +65,7 @@ const resetPassword = catchAsync(async (req, res) => {
 });
 
 const editPassword = catchAsync(async (req, res) => {
-  await authService.editPassword(req.body.token, req.body.password);
+  await authService.changePassword(req.body.token, req.body);
   res.status(httpStatus.NO_CONTENT).send();
 });
 

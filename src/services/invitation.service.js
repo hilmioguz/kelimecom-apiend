@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const { Invitation } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { emailService } = require('.');
+const { emailService } = require('./email.service');
 /**
  * Create a guest invitation for the given by user
  * @param {Object} inviationBody

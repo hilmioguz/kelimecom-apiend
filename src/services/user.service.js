@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { emailService } = require('.');
+const { emailService } = require('./email.service');
 
 const { ObjectId } = mongoose.Types;
 
@@ -124,6 +124,33 @@ const queryUsers = async (filter, options) => {
   const users = await User.paginate(filter, options);
   return users;
 };
+const addFriend = async (userId, friendId) => {
+  if (userId === friendId) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Cannot friend yourself.');
+  }
+  const dbUserData = await User.findOneAndUpdate(
+    { _id: userId },
+    { $addToSet: { friends: friendId } },
+    { new: true, useFindAndModify: false }
+  );
+  if (!dbUserData) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  return dbUserData;
+};
+
+// Delete this friendId from this User's array of friends
+const deleteFriend = async (userId, friendId) => {
+  const dbUserData = await User.findOneAndUpdate(
+    { _id: userId },
+    { $pull: { friends: friendId } },
+    { new: true, useFindAndModify: false }
+  );
+  if (!dbUserData) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+  }
+  return dbUserData;
+};
 
 /**
  * Get user by id
@@ -206,4 +233,6 @@ module.exports = {
   deleteUserById,
   createMassUser,
   deleteSet,
+  addFriend,
+  deleteFriend,
 };

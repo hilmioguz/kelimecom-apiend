@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
+const autopop = require('mongoose-autopopulate');
+
 const { toJSON, paginate } = require('./plugins');
+
+const { Schema } = mongoose;
 
 const searchstatSchema = mongoose.Schema(
   {
@@ -29,6 +33,18 @@ const searchstatSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Kurumlar',
+      default: null, // standard paket id in db
+      autopopulate: true,
+    },
+    kurumId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Kurumlar',
+      default: null, // standard paket id in db
+      autopopulate: true,
+    },
   },
   {
     timestamps: true,
@@ -38,7 +54,7 @@ const searchstatSchema = mongoose.Schema(
 // add plugin that converts mongoose to json
 searchstatSchema.plugin(toJSON);
 searchstatSchema.plugin(paginate);
-
+searchstatSchema.plugin(autopop);
 /**
  * @typedef Searchstat
  */
