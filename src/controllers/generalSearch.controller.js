@@ -27,6 +27,11 @@ const getKelimeler = catchAsync(async (req, res) => {
   res.send(result);
 });
 
+const updateDigeryazim = catchAsync(async (req, res) => {
+  const result = await searchService.updateDigeryazim();
+  res.send(result);
+});
+
 const getRawKelimeler = catchAsync(async (req, res) => {
   console.log('params:', req.params);
   console.log('body:', req.body);
@@ -190,5 +195,6 @@ module.exports = {
   getMaddeByRandom,
   getRawKelimeler,
   getKelimeById,
+  updateDigeryazim,
   getKelimeByMaddeExceptItself,
 };

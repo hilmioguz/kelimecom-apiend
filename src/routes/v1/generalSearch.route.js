@@ -9,7 +9,7 @@ const router = express.Router();
 router
   .route('/')
   .post(auth('freeZone'), validate(generalSearchValidation.getRawKelimeler), generalSearchController.getRawKelimeler);
-
+router.route('/updateDigeryazim').get(auth('freeZone'), generalSearchController.updateDigeryazim);
 router
   .route('/kelime/:madde/:id/:dil?/:tip?/:sozluk?/:clientIp?')
   .get(auth('freeZone'), validate(generalSearchValidation.getKelimeByMadde), generalSearchController.getKelimeByMadde);

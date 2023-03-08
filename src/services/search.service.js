@@ -1,10 +1,11 @@
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable security/detect-unsafe-regex */
 /* eslint-disable security/detect-non-literal-regexp */
 const httpStatus = require('http-status');
 const mongoose = require('mongoose');
 const { Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
-// const logger = require('../config/logger');
+const logger = require('../config/logger');
 
 // eslint-disable-next-line no-unused-vars
 const { ObjectId } = mongoose.Types;
@@ -27,6 +28,69 @@ const queryKelimeler = async (filter, options) => {
   return maddeler;
 };
 
+const updateDigeryazim = async () => {
+  const cursor = Madde.find({}).cursor();
+  let icount = 0;
+  let ecount = 0;
+  const erormessages = [];
+  // eslint-disable-next-line no-await-in-loop
+  // for (let doc = await cursor.next(); doc != null; doc = await cursor.next()) {
+  for await (const doc of cursor) {
+    const maddemiz = doc.madde;
+    const docdigeryazim = doc.digeryazim;
+
+    // eslint-disable-next-line no-console
+    // console.log('madde:', maddemiz, docdigeryazim.toString());
+    const temp = [...docdigeryazim];
+    const yeni = [];
+    const kesmeRegex = new RegExp("[’'`‘]", 'g');
+    const tireRegex = new RegExp('[-]', 'g');
+
+    // // eslint-disable-next-line no-console
+    // console.log(JSON.stringify('kesme varmı:', kesmeRegex.test(maddemiz)));
+    // // eslint-disable-next-line no-console
+    // console.log(JSON.stringify('tire varmı:', kesmeRegex.test(maddemiz)));
+
+    if (kesmeRegex.test(maddemiz)) {
+      const yenikesmeli = maddemiz.replace(kesmeRegex, '');
+      yeni.push(yenikesmeli);
+      if (tireRegex.test(yenikesmeli)) {
+        yeni.push(yenikesmeli.replace(tireRegex, ''));
+        yeni.push(yenikesmeli.replace(tireRegex, ' '));
+      }
+    }
+
+    if (tireRegex.test(maddemiz)) {
+      yeni.push(maddemiz.replace(tireRegex, ''));
+      yeni.push(maddemiz.replace(tireRegex, ' '));
+    }
+
+    if (yeni && yeni.length > 0) {
+      let final = [...temp, ...yeni];
+      final = [...new Set(final)];
+      // eslint-disable-next-line no-console
+      // console.log(JSON.stringify(final));
+      doc.set('digeryazim', final);
+      // eslint-disable-next-line no-loop-func
+      doc.save(function (err) {
+        if (err) {
+          ecount += 1;
+          // eslint-disable-next-line no-console
+          erormessages.push({ err, maddemiz });
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('saved ', maddemiz, final.toString());
+        }
+      });
+      icount += 1;
+      // eslint-disable-next-line no-console
+      // console.log(doc.madde, ' : ', JSON.stringify(final, null, 2)); // Prints documents one at a time
+    }
+  }
+
+  return { updated: icount, error: ecount, errormessages: erormessages };
+};
+
 const rawQueryKelimeler = async (options) => {
   const conditionalMatch = {};
   const conditionalMatch2 = {};
@@ -45,6 +109,65 @@ const rawQueryKelimeler = async (options) => {
   const defaultLangOrders = ['tr', 'en', 'os', 'ar', 'fa'];
   // eslint-disable-next-line no-console
   // ('search service-->:', options);
+  // eslint-disable-next-line no-console
+  let searchTermConverted = searchTerm.toLowerCase();
+  searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
+  searchTermConverted = searchTermConverted.replace(/u/g, '[uûü]');
+  searchTermConverted = searchTermConverted.replace(/i/g, '[iîı]');
+  // eslint-disable-next-line no-useless-escape, prettier/prettier
+  searchTermConverted = searchTermConverted.replace(/ی/g, '[يی]');
+  searchTermConverted = searchTermConverted.replace(/ك/g, '[كکگڭ]');
+  searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآإ]');
+
+  // searchTermConverted = searchTermConverted.replace(/'/g, "['`]");
+  // searchTermConverted = searchTermConverted.replace(/-/g, '[- ]');
+  // searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
+
+  if (!searchTermConverted.includes('[aâ]') && searchTermConverted.includes('â')) {
+    searchTermConverted = searchTermConverted.replace(/â/g, '[aâ]');
+  }
+  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('û')) {
+    searchTermConverted = searchTermConverted.replace(/û/g, '[uûü]');
+  }
+  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('î')) {
+    searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
+  }
+
+  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('ü')) {
+    searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
+  }
+  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('ı')) {
+    searchTermConverted = searchTermConverted.replace(/ı/g, '[iîı]');
+  }
+  if (!searchTermConverted.includes('[يی]') && searchTermConverted.includes('ي')) {
+    searchTermConverted = searchTermConverted.replace(/ي/g, '[يی]');
+  }
+  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('ك')) {
+    searchTermConverted = searchTermConverted.replace(/ك/g, '[كکگڭ]');
+  }
+  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('ک')) {
+    searchTermConverted = searchTermConverted.replace(/ک/g, '[كکگڭ]');
+  }
+  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('گ')) {
+    searchTermConverted = searchTermConverted.replace(/گ/g, '[كکگڭ]');
+  }
+  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('ڭ')) {
+    searchTermConverted = searchTermConverted.replace(/ڭ/g, '[كکگڭ]');
+  }
+
+  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('ا')) {
+    searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآإ]');
+  }
+  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('أ')) {
+    searchTermConverted = searchTermConverted.replace(/أ/g, '[اأآإ]');
+  }
+  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('آ')) {
+    searchTermConverted = searchTermConverted.replace(/آ/g, '[اأآإ]');
+  }
+  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('إ')) {
+    searchTermConverted = searchTermConverted.replace(/إ/g, '[اأآإ]');
+  }
+  searchTerm = searchTermConverted;
 
   if (searchType === 'exact') {
     if (['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
@@ -61,14 +184,23 @@ const rawQueryKelimeler = async (options) => {
     } else {
       conditionalMatch.$or = [
         {
-          madde: searchTerm,
+          madde: {
+            $regex: new RegExp(`^${searchTerm}$`, 'i'),
+          },
         },
         {
-          digeryazim: { $in: [searchTerm] },
+          digeryazim: { $in: [new RegExp(`^${searchTerm}$`, 'i')] },
         },
+        // {
+        //   madde: searchTerm,
+        // },
+        // {
+        //   digeryazim: { $in: [searchTerm] },
+        // },
       ];
       // conditionalMatch.madde = searchTerm;
     }
+    // console.log('searchTerm:ddddd:', searchTerm);
   } else if (searchType === 'exactwithdash') {
     conditionalMatch.$or = [
       {
@@ -113,46 +245,22 @@ const rawQueryKelimeler = async (options) => {
       $regex: new RegExp(`^${searchTerm}$`, 'i'),
     };
   } else {
+    // if (!searchTermConverted.includes("'") && searchTermConverted.includes('`')) {
+    //   searchTermConverted = searchTermConverted.replace(/`/g, "['`]");
+    // }
+    // if (!searchTermConverted.includes('[- ]') && searchTermConverted.includes(' ')) {
+    //   searchTermConverted = searchTermConverted.replace(/ /g, '[- ]');
+    // }
     // eslint-disable-next-line no-console
-    let searchTermConverted = searchTerm.toLowerCase();
-    searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
-    searchTermConverted = searchTermConverted.replace(/u/g, '[uûü]');
-    searchTermConverted = searchTermConverted.replace(/i/g, '[iîı]');
-    searchTermConverted = searchTermConverted.replace(/'/g, "['`]");
-    searchTermConverted = searchTermConverted.replace(/-/g, '[- ]');
-    // searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
-
-    if (!searchTermConverted.includes('[aâ]') && searchTermConverted.includes('â')) {
-      searchTermConverted = searchTermConverted.replace(/â/g, '[aâ]');
-    }
-    if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('û')) {
-      searchTermConverted = searchTermConverted.replace(/û/g, '[uûü]');
-    }
-    if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('î')) {
-      searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
-    }
-
-    if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('ü')) {
-      searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
-    }
-    if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('ı')) {
-      searchTermConverted = searchTermConverted.replace(/ı/g, '[iîı]');
-    }
-
-    if (!searchTermConverted.includes("'") && searchTermConverted.includes('`')) {
-      searchTermConverted = searchTermConverted.replace(/`/g, "['`]");
-    }
-    if (!searchTermConverted.includes('[- ]') && searchTermConverted.includes(' ')) {
-      searchTermConverted = searchTermConverted.replace(/ /g, '[- ]');
-    }
+    // console.log('searchTermConverted:', searchTerm);
     conditionalMatch.$or = [
       {
         madde: {
-          $regex: new RegExp(`^${searchTermConverted}`, 'i'), //  madde: { $regex: new RegExp('^kal[aâ]', 'ig')}
+          $regex: new RegExp(`^${searchTerm}`, 'i'), //  madde: { $regex: new RegExp('^kal[aâ]', 'ig')}
         },
       },
       {
-        digeryazim: { $in: [new RegExp(`^${searchTermConverted}`, 'i')] }, // digeryazim: { $in: [/^cal[âa]y/ig]}
+        digeryazim: { $in: [new RegExp(`^${searchTerm}`, 'i')] }, // digeryazim: { $in: [/^cal[âa]y/ig]}
       },
     ];
   }
@@ -439,8 +547,8 @@ const rawQueryKelimeler = async (options) => {
   }
 
   // condition.push({ allowDiskUse: true });
-  // logger.info(`searchType: ${searchType}`);
-  // logger.info(`final condition:${JSON.stringify(condition)}`);
+  logger.info(`searchType: ${searchType}`);
+  logger.info(`final condition:${JSON.stringify(condition)}`);
 
   const agg = Madde.aggregate(condition).allowDiskUse(true);
 
@@ -450,6 +558,9 @@ const rawQueryKelimeler = async (options) => {
     page: options.page || 1,
     searchType,
   };
+  if (searchType === 'exact') {
+    suboptions.limit = 10000;
+  }
 
   // eslint-disable-next-line no-console
   // console.log('-> suboptions:', suboptions);
@@ -762,5 +873,6 @@ module.exports = {
   getKelimeByMadde,
   rawQueryKelimeler,
   getKelimeById,
+  updateDigeryazim,
   getKelimeByMaddeExceptItself,
 };
