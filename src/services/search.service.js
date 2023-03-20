@@ -190,7 +190,6 @@ const rawQueryKelimeler = async (options) => {
   }
 
   searchTerm = searchTermConverted;
-  console.log('searchTermConverted:***********', searchTerm);
 
   if (searchType === 'exact') {
     if (['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
