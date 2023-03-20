@@ -111,13 +111,15 @@ const rawQueryKelimeler = async (options) => {
   // ('search service-->:', options);
   // eslint-disable-next-line no-console
   let searchTermConverted = searchTerm.toLowerCase();
-  searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
-  searchTermConverted = searchTermConverted.replace(/u/g, '[uûü]');
-  searchTermConverted = searchTermConverted.replace(/i/g, '[iîı]');
+  // searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
+  searchTermConverted = searchTermConverted.replace(/â/g, '[aâ]');
+  searchTermConverted = searchTermConverted.replace(/û/g, '[uûü]');
+  searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
   // eslint-disable-next-line no-useless-escape, prettier/prettier
   searchTermConverted = searchTermConverted.replace(/ی/g, '[يی]');
   searchTermConverted = searchTermConverted.replace(/ك/g, '[كکگڭ]');
-  searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآإ]');
+  searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآ]');
+  searchTermConverted = searchTermConverted.replace(/ت/g, '[تة]');
 
   // searchTermConverted = searchTermConverted.replace(/'/g, "['`]");
   // searchTermConverted = searchTermConverted.replace(/-/g, '[- ]');
@@ -125,6 +127,15 @@ const rawQueryKelimeler = async (options) => {
 
   if (!searchTermConverted.includes('[aâ]') && searchTermConverted.includes('â')) {
     searchTermConverted = searchTermConverted.replace(/â/g, '[aâ]');
+  }
+  if (!searchTermConverted.includes('[aâ]') && searchTermConverted.includes('a')) {
+    searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
+  }
+  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('u')) {
+    searchTermConverted = searchTermConverted.replace(/u/g, '[uûü]');
+  }
+  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('ü')) {
+    searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
   }
   if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('û')) {
     searchTermConverted = searchTermConverted.replace(/û/g, '[uûü]');
@@ -138,6 +149,12 @@ const rawQueryKelimeler = async (options) => {
   }
   if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('ı')) {
     searchTermConverted = searchTermConverted.replace(/ı/g, '[iîı]');
+  }
+  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('i')) {
+    searchTermConverted = searchTermConverted.replace(/i/g, '[iîı]');
+  }
+  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('î')) {
+    searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
   }
   if (!searchTermConverted.includes('[يی]') && searchTermConverted.includes('ي')) {
     searchTermConverted = searchTermConverted.replace(/ي/g, '[يی]');
@@ -155,19 +172,25 @@ const rawQueryKelimeler = async (options) => {
     searchTermConverted = searchTermConverted.replace(/ڭ/g, '[كکگڭ]');
   }
 
-  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('ا')) {
-    searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآإ]');
+  if (!searchTermConverted.includes('[اأآ]') && searchTermConverted.includes('ا')) {
+    searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآ]');
   }
-  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('أ')) {
-    searchTermConverted = searchTermConverted.replace(/أ/g, '[اأآإ]');
+  if (!searchTermConverted.includes('[اأآ]') && searchTermConverted.includes('أ')) {
+    searchTermConverted = searchTermConverted.replace(/أ/g, '[اأآ]');
   }
-  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('آ')) {
-    searchTermConverted = searchTermConverted.replace(/آ/g, '[اأآإ]');
+  if (!searchTermConverted.includes('[اأآ]') && searchTermConverted.includes('آ')) {
+    searchTermConverted = searchTermConverted.replace(/آ/g, '[اأآ]');
   }
-  if (!searchTermConverted.includes('[اأآإ]') && searchTermConverted.includes('إ')) {
-    searchTermConverted = searchTermConverted.replace(/إ/g, '[اأآإ]');
+
+  if (!searchTermConverted.includes('[تة]') && searchTermConverted.includes('ت')) {
+    searchTermConverted = searchTermConverted.replace(/ت/g, '[تة]');
   }
+  if (!searchTermConverted.includes('[تة]') && searchTermConverted.includes('ة')) {
+    searchTermConverted = searchTermConverted.replace(/ة/g, '[تة]');
+  }
+
   searchTerm = searchTermConverted;
+  console.log('searchTermConverted:***********', searchTerm);
 
   if (searchType === 'exact') {
     if (['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
@@ -236,7 +259,7 @@ const rawQueryKelimeler = async (options) => {
     ];
   } else if (searchType === 'maddeanlam') {
     conditionalMatch['whichDict.anlam'] = {
-      $regex: new RegExp(` ${searchTerm} `, 'i'),
+      $regex: new RegExp(` ${searchTerm}`, 'i'),
     };
   } else if (searchType === 'advanced' && !['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
     conditionalMatch.madde = searchTerm;
@@ -252,7 +275,6 @@ const rawQueryKelimeler = async (options) => {
     //   searchTermConverted = searchTermConverted.replace(/ /g, '[- ]');
     // }
     // eslint-disable-next-line no-console
-    // console.log('searchTermConverted:', searchTerm);
     conditionalMatch.$or = [
       {
         madde: {
