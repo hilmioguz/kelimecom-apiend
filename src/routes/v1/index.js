@@ -20,6 +20,7 @@ const generalSearchRoute = require('./generalSearch.route');
 const sitelanguageRoute = require('./sitelanguage.route');
 const fileUploadRoute = require('./fileupload.route');
 const excelRoute = require('./excel.route');
+const profileRoute = require('./profile.route');
 const config = require('../../config/config');
 const previewmaddeRoute = require('./previewmadde.route');
 
@@ -93,6 +94,10 @@ const defaultRoutes = [
   {
     path: '/kuluckasection',
     route: kuluckaSectionRoute,
+  },
+  {
+    path: '/profile',
+    route: profileRoute,
   },
   {
     path: '/sitelanguage',

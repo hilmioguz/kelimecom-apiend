@@ -209,14 +209,14 @@ const userMaddeFavorites = async (id, anlamId, userId, method) => {
   if (method === 'insert') {
     sonuc = await Madde.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
-      { $push: { 'whichDict.$.favorites': ObjectId(userId) } },
+      { $push: { 'whichDict.$.favorites': { userId: ObjectId(userId) } } },
       { new: true, upsert: true }
     );
   }
   if (method === 'delete') {
     sonuc = await Madde.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
-      { $pull: { 'whichDict.$.favorites': ObjectId(userId) } },
+      { $pull: { 'whichDict.$.favorites': { userId: ObjectId(userId) } } },
       { new: true, upsert: true }
     );
   }
@@ -231,14 +231,14 @@ const userMaddeLikes = async (id, anlamId, userId, method) => {
   if (method === 'insert') {
     sonuc = await Madde.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
-      { $push: { 'whichDict.$.likes': ObjectId(userId) } },
+      { $push: { 'whichDict.$.likes': { userId: ObjectId(userId) } } },
       { new: true, upsert: true }
     );
   }
   if (method === 'delete') {
     sonuc = await Madde.updateOne(
       { _id: ObjectId(id), 'whichDict.id': ObjectId(anlamId) },
-      { $pull: { 'whichDict.$.likes': ObjectId(userId) } },
+      { $pull: { 'whichDict.$.likes': { userId: ObjectId(userId) } } },
       { new: true, upsert: true }
     );
   }

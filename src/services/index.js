@@ -21,3 +21,4 @@ module.exports.kuluckadictionaryService = require('./kuluckadictionaries.service
 module.exports.kuluckamaddeService = require('./kuluckamadde.service');
 module.exports.kuluckasectionService = require('./kuluckasections.service');
 module.exports.siteLanguageService = require('./sitelanguage.service');
+module.exports.profileService = require('./profile.service');

@@ -6,6 +6,17 @@ const { toJSON, paginate, aggregatePaginate } = require('./plugins');
 
 const { Schema } = mongoose;
 
+const zamanliKullanici = mongoose.Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 const maddeSchema = mongoose.Schema(
   {
     madde: {
@@ -219,18 +230,8 @@ const maddeSchema = mongoose.Schema(
             type: String,
           },
         ],
-        likes: [
-          {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-          },
-        ],
-        favorites: [
-          {
-            type: Schema.Types.ObjectId,
-            ref: 'User',
-          },
-        ],
+        likes: [zamanliKullanici],
+        favorites: [zamanliKullanici],
         bulunduguSayfalar: {
           type: String,
           default: '',

@@ -43,15 +43,15 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   aranantext = aranantext.replace(/٭/g, '.*.');
   aranantext = aranantext.replace(/؟/g, '.');
 
-  if (req.body.searchType === 'advanced') {
-    aranantext = aranantext.trim();
-    aranantext = aranantext.replace(/\[/g, '(');
-    aranantext = aranantext.replace(/\]/g, ')');
-    aranantext = aranantext.replace(/,/g, '|');
-    aranantext = aranantext.replace(/،/g, '|');
-  } else {
-    aranantext = aranantext.replace(/\[.*\]/g, '');
-  }
+  // if (req.body.searchType === 'advanced') {
+  aranantext = aranantext.trim();
+  aranantext = aranantext.replace(/\[/g, '(');
+  aranantext = aranantext.replace(/\]/g, ')');
+  aranantext = aranantext.replace(/,/g, '|');
+  aranantext = aranantext.replace(/،/g, '|');
+  // } else {
+  aranantext = aranantext.replace(/\[.*\]/g, '');
+  // }
 
   const options = {};
   options.searchTerm = aranantext;

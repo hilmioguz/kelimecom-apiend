@@ -5,6 +5,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
+const schedule = require('node-schedule');
 const httpStatus = require('http-status');
 const fs = require('fs');
 const config = require('./config/config');
@@ -15,6 +16,7 @@ const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 const ApiError = require('./utils/ApiError');
 const Madde = require('./models/madde.model');
+const generalSearchController = require('./controllers/generalSearch.controller');
 
 const app = express();
 
@@ -85,6 +87,19 @@ const getRandomMadde = async () => {
     });
   }
 };
+
+const updateDigeryazim = async () => {
+  // eslint-disable-next-line no-console
+  console.log('Updating diger yazim...');
+  generalSearchController.updateDigeryazim();
+};
+
+const rule = new schedule.RecurrenceRule();
+rule.hour = 0;
+rule.minute = 0;
+rule.date = 1;
+rule.tz = 'Europe/Istanbul';
+schedule.scheduleJob(rule, updateDigeryazim);
 
 setTimeout(() => getRandomMadde(), 3000);
 setInterval(getRandomMadde, 1000 * 60 * 60 * 24);

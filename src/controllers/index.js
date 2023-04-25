@@ -17,3 +17,4 @@ module.exports.kuluckamaddeController = require('./kuluckamadde.controller');
 module.exports.kuluckasectionController = require('./kuluckasections.controller');
 module.exports.siteLanguageController = require('./sitelanguage.controller');
 module.exports.previewmaddeController = require('./previewmadde.controller');
+module.exports.profileController = require('./profile.controller');

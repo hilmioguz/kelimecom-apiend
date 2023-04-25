@@ -274,6 +274,7 @@ const rawQueryKelimeler = async (options) => {
     //   searchTermConverted = searchTermConverted.replace(/ /g, '[- ]');
     // }
     // eslint-disable-next-line no-console
+    console.log('ILKSORUGUUUUUU DA BURDA');
     conditionalMatch.$or = [
       {
         madde: {
