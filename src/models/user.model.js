@@ -235,9 +235,12 @@ userSchema.pre('save', async function (next) {
     user.nickname = this.email.split('@')[0];
   }
   if (this.isNew) {
-    const userdomain = user.email.substring(user.email.lastIndexOf('@') + 1);
+    // const userdomain = user.email.substring(user.email.lastIndexOf('@') + 1);
+    const regex =
+      /[^.@]*?\.\w{2,}$|[^.@]*?\.com?\.\w{2}$|[^.@]*?\.edu?\.\w{2}$|[^.@]*?\.gov?\.\w{2}$|[^.@]*?\.org?\.\w{2}$/gm;
+    const userdomain = user.email.match(regex)[0];
     try {
-      const kurumlar = await Kurumlar.find({ isActive: 1 });
+      const kurumlar = await Kurumlar.find({});
       const kurumsalpaket = await Packets.find({ role: 'kurumsal' });
       const standartpaket = await Packets.find({ role: 'standart' });
       const emailMatch = kurumlar.filter((kurum) => kurum.mail_suffix.includes(userdomain));

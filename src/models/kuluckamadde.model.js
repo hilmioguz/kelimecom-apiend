@@ -49,7 +49,7 @@ const kuluckamaddeSchema = mongoose.Schema(
         tur: [
           {
             type: String,
-            enum: ['isim', 'fiil', 'sıfat', 'zarf', 'ünlem', 'bağlaç', 'zamir', 'edat', 'mecaz', 'belirtilmemiş'],
+            // enum: ['isim', 'fiil', 'sıfat', 'zarf', 'ünlem', 'bağlaç', 'zamir', 'edat', 'mecaz', 'belirtilmemiş'],
           },
         ],
         tip: [

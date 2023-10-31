@@ -6,7 +6,7 @@ const compression = require('compression');
 const cors = require('cors');
 const passport = require('passport');
 const schedule = require('node-schedule');
-const httpStatus = require('http-status');
+// const httpStatus = require('http-status');
 const fs = require('fs');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
@@ -14,7 +14,7 @@ const { jwtStrategy } = require('./config/passport');
 const { authLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
-const ApiError = require('./utils/ApiError');
+// const ApiError = require('./utils/ApiError');
 const Madde = require('./models/madde.model');
 const generalSearchController = require('./controllers/generalSearch.controller');
 
@@ -63,9 +63,9 @@ if (config.env === 'production') {
 // v1 api routes
 app.use('/v1', routes);
 // send back a 404 error for any unknown api request
-app.use((req, res, next) => {
-  next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
-});
+// app.use((req, res, next) => {
+//   next(new ApiError(httpStatus.NOT_FOUND, 'Not found'));
+// });
 
 // convert error to ApiError, if needed
 app.use(errorConverter);

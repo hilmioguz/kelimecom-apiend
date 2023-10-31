@@ -52,10 +52,10 @@ const whichDictSchema = {
   tarihcesi: Joi.array()
     .items(
       Joi.object().keys({
-        baslangic: Joi.string(),
-        bitis: Joi.string(),
-        adi: Joi.string(),
-        hakimiyet: Joi.string(),
+        baslangic: Joi.allow('').empty().optional(),
+        bitis: Joi.allow('').empty().optional(),
+        adi: Joi.allow('').empty().optional(),
+        hakimiyet: Joi.allow('').empty().optional(),
       })
     )
     .optional(),
@@ -176,10 +176,10 @@ const updateSubMadde = {
     tarihcesi: Joi.array()
       .items(
         Joi.object().keys({
-          baslangic: Joi.string(),
-          bitis: Joi.string(),
-          adi: Joi.string(),
-          hakimiyet: Joi.string(),
+          baslangic: Joi.allow('').empty().optional(),
+          bitis: Joi.allow('').empty().optional(),
+          adi: Joi.allow('').empty().optional(),
+          hakimiyet: Joi.allow('').empty().optional(),
         })
       )
       .optional(),
