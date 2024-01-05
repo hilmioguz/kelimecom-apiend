@@ -48,6 +48,10 @@ const prefilter = (req, allowedfields) => {
     'isDelivered',
     'isControlled',
     'isUploading',
+    'dictId',
+    'tur',
+    'tip',
+    'dili',
   ]);
   let filter = null;
   if (picked) {
@@ -92,6 +96,18 @@ const prefilter = (req, allowedfields) => {
     }
     if (picked.isUploading !== 'undefined' && picked.isUploading != null) {
       filter.isUploading = picked.isUploading;
+    }
+    if (picked.dictId !== 'undefined' && picked.dictId != null) {
+      filter.whichDict = { $elemMatch: { dictId: ObjectId(picked.dictId) } };
+    }
+    if (picked.dili !== 'undefined' && picked.dili != null) {
+      filter.whichDict = { $elemMatch: { dili: picked.dili } };
+    }
+    if (picked.tur !== 'undefined' && picked.tur != null) {
+      filter.whichDict = { $elemMatch: { tur: { $in: picked.tur.split(',') } } };
+    }
+    if (picked.tip !== 'undefined' && picked.tip != null) {
+      filter.whichDict = { $elemMatch: { tip: { $in: picked.tip.split(',') } } };
     }
   }
   // eslint-disable-next-line no-console

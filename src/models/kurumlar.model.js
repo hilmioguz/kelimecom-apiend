@@ -63,9 +63,9 @@ kurumlarSchema.plugin(paginate);
 kurumlarSchema.statics.isKurumAlrearyInDB = async function (name, excludeKurumId) {
   let kurum;
   if (excludeKurumId) {
-    kurum = await this.findOne({ name, _id: { $ne: excludeKurumId } });
+    kurum = await this.findOne({ institution_name: name, _id: { $ne: excludeKurumId } });
   } else {
-    kurum = await this.findOne({ name });
+    kurum = await this.findOne({ institution_name: name });
   }
   return !!kurum;
 };

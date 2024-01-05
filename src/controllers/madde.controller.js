@@ -15,7 +15,7 @@ const createSubMadde = catchAsync(async (req, res) => {
 });
 
 const getMaddeler = catchAsync(async (req, res) => {
-  const { filter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet']);
+  const { filter, options } = prefilter(req, ['madde', 'tur', 'tip', 'koken', 'cinsiyet', 'dictId', 'dili']);
   const result = await maddeService.queryMaddeler(filter, options);
   res.send(result);
 });
