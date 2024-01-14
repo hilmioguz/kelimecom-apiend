@@ -11,6 +11,7 @@ router
   .post(auth('manageMadde'), validate(maddeValidation.createMadde), maddeController.createMadde)
   .get(auth('getMadde'), validate(maddeValidation.getMaddeler), maddeController.getMaddeler);
 
+router.route('/export/excel').get(auth('getMadde'), validate(maddeValidation.getMaddeler), maddeController.exportMaddeler);
 router
   .route('/:maddeId')
   .get(auth('getMadde'), validate(maddeValidation.getMaddeById), maddeController.getMaddeById)

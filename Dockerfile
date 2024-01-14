@@ -12,5 +12,7 @@ RUN yarn install --pure-lockfile
 
 COPY --chown=node:node . .
 
+RUN export NODE_OPTIONS=--max-old-space-size=8192
+
 EXPOSE 5001
 CMD [ "yarn", "dev" ]

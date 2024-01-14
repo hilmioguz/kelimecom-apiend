@@ -51,6 +51,173 @@ const queryMaddeler = async (filter, options) => {
   return maddeler;
 };
 
+// const queryExportMaddeler = async (filter) => {
+//   try {
+//     // const count = await Madde.countDocuments(filter);
+//     const downloadFilename = `./Maddeler-${Date.now()}.xlsx`;
+//     const options = {
+//       filename: downloadFilename,
+//       useStyles: true,
+//       useSharedStrings: true,
+//     };
+//     const workbook = new Excel.stream.xlsx.WorkbookWriter(options);
+//     const ws = workbook.addWorksheet('My Sheet');
+//     // const batchLimit = 1000;
+//     // const totalAvgCount = Math.ceil(count / batchLimit);
+//     // header of excel file
+//     ws.addRow([
+//       'madde',
+//       'digeryazim',
+//       'karsi',
+//       'anlam',
+//       'sozluk',
+//       'tip',
+//       'tur',
+//       'alttur',
+//       'koken',
+//       'cinsiyet',
+//       'bicim',
+//       'sinif',
+//       'transkripsiyon',
+//       'fonetik',
+//       'heceliyazim',
+//       'zitanlam',
+//       'esanlam',
+//       'telaffuz',
+//       'girisiyapan',
+//     ]).commit();
+//     // eslint-disable-next-line no-console
+//     // console.log('totalAvgCount:', totalAvgCount);
+//     // eslint-disable-next-line camelcase
+//     const table_data = await Madde.find(filter).limit(100);
+//     // eslint-disable-next-line no-console
+//     console.log('Table Data:', JSON.stringify(table_data, null, 2));
+//     const newa = [];
+//     // eslint-disable-next-line no-restricted-syntax, camelcase
+//     for await (const h of table_data) {
+//       h.whichDict.forEach((w) => {
+//         const a = {};
+//         a.madde = h.madde;
+//         a.digeryazim = h.digeryazim ? h.digeryazim.join(',') : '';
+//         a.karsi = w.karsi && w.karsi.length ? w.karsi.map((k) => k.madde).join(',') : '';
+//         a.anlam = w.anlam;
+//         a.sozluk = w.dictId.name;
+//         a.tip = w.tip ? w.tip.join(',') : '';
+//         a.tur = w.tur ? w.tur.join(',') : '';
+//         a.alttur = w.alttur ? w.alttur.join(',') : '';
+//         a.koken = w.koken ? w.koken.join(',') : '';
+//         a.cinsiyet = w.cinsiyet ? w.cinsiyet.join(',') : '';
+//         a.bicim = w.bicim ? w.bicim.join(',') : '';
+//         a.sinif = w.sinif ? w.sinif.join(',') : '';
+//         a.transkripsiyon = w.transkripsiyon ? w.transkripsiyon.join(',') : '';
+//         a.fonetik = w.fonetik ? w.fonetik.join(',') : '';
+//         a.heceliyazim = w.heceliyazim ? w.heceliyazim.join(',') : '';
+//         a.zitanlam = w.zitanlam ? w.zitanlam.join(',') : '';
+//         a.esanlam = w.esanlam ? w.esanlam.join(',') : '';
+//         a.telaffuz = w.telaffuz ? w.telaffuz.join(',') : '';
+//         if (w.userSubmitted) a.userSubmitted = w.userSubmitted.name;
+//         newa.push(a);
+//       });
+//     }
+//     // eslint-disable-next-line no-restricted-syntax
+//     for await (const values of newa) {
+//       ws.addRow([
+//         values.madde || '',
+//         values.digeryazim || '',
+//         values.karsi || '',
+//         values.anlam || '',
+//         values.sozluk || '',
+//         values.tip || '',
+//         values.tur || '',
+//         values.alttur || '',
+//         values.koken || '',
+//         values.cinsiyet || '',
+//         values.bicim || '',
+//         values.sinif || '',
+//         values.transkripsiyon || '',
+//         values.fonetik || '',
+//         values.heceliyazim || '',
+//         values.zitanlam || '',
+//         values.esanlam || '',
+//         values.telaffuz || '',
+//         values.userSubmitted || '',
+//       ]).commit();
+//     }
+
+//     // let i = 0;
+//     // Total batch
+//     // eslint-disable-next-line camelcase
+//     // while (i < totalAvgCount) {
+//     //   // eslint-disable-next-line no-await-in-loop, camelcase
+//     //   const table_data = await Madde.find(filter, {
+//     //     order: [['id', 'ASC']],
+//     //     // eslint-disable-next-line camelcase
+//     //     offset: 0,
+//     //     limit: -1,
+//     //   });
+//     //   // eslint-disable-next-line no-console
+//     //   console.log('table Data', table_data);
+//     // const newa = [];
+//     // table_data.forEach((h) => {
+//     //   h.whichDict.forEach((w) => {
+//     //     const a = {};
+//     //     a.madde = h.madde;
+//     //     a.digeryazim = h.digeryazim;
+//     //     a.anlam = w.anlam;
+//     //     a.sozluk = w.dictId.name;
+//     //     a.karsi = w.karsi && w.karsi.length ? w.karsi.map((k) => k.madde).join(',') : '';
+//     //     a.tip = w.tip;
+//     //     a.tur = w.tur;
+//     //     a.alttur = w.alttur;
+//     //     a.koken = w.koken;
+//     //     a.cinsiyet = w.cinsiyet;
+//     //     a.bicim = w.bicim;
+//     //     a.sinif = w.sinif;
+//     //     a.transkripsiyon = w.transkripsiyon;
+//     //     a.fonetik = w.fonetik;
+//     //     a.heceliyazim = w.heceliyazim;
+//     //     a.zitanlam = w.zitanlam;
+//     //     a.esanlam = w.esanlam;
+//     //     a.telaffuz = w.telaffuz;
+//     //     if (w.userSubmitted) a.userSubmitted = w.userSubmitted.name;
+//     //     newa.push(a);
+//     //   });
+//     // });
+//     // batch  loop
+//     // newa.forEach(async (values) => {
+//     //   ws.addRow([
+//     //     values.madde || '',
+//     //     values.digeryazim || '',
+//     //     values.anlam || '',
+//     //     values.sozluk || '',
+//     //     values.karsi || '',
+//     //     values.tip || '',
+//     //     values.tur || '',
+//     //     values.alttur || '',
+//     //     values.koken || '',
+//     //     values.cinsiyet || '',
+//     //     values.bicim || '',
+//     //     values.sinif || '',
+//     //     values.transkripsiyon || '',
+//     //     values.fonetik || '',
+//     //     values.heceliyazim || '',
+//     //     values.zitanlam || '',
+//     //     values.esanlam || '',
+//     //     values.telaffuz || '',
+//     //     values.userSubmitted || '',
+//     //   ]).commit();
+//     // });
+//     // i += 1;
+//     // }
+
+//     // await workbook.commit();
+//     return workbook;
+//     // response shown in  json
+//   } catch (error) {
+//     return error;
+//   }
+// };
+
 const rawQueryMaddeler = async (madde) => {
   const agg = [
     {
@@ -262,4 +429,5 @@ module.exports = {
   deleteSubMaddeById,
   userMaddeFavorites,
   userMaddeLikes,
+  // queryExportMaddeler,
 };
