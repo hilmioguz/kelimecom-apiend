@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+const startOfDay = require('date-fns/startOfDay');
 const { Searchstat, User, Gundem, Kurumlar, Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
 
@@ -29,7 +30,16 @@ const querySearchstat = async (filter, options) => {
 };
 
 const latestByLang = async (lang, limit = 10) => {
-  const andBlock = [{ isInDict: true }];
+  const d = new Date();
+  d.setMonth(d.getMonth() - 3);
+  const andBlock = [
+    {
+      isInDict: true,
+      createdAt: {
+        $gte: startOfDay(d),
+      },
+    },
+  ];
   if (lang !== 'tumu') {
     andBlock.push({ secilenDil: lang });
   }
@@ -61,7 +71,16 @@ const latestByLang = async (lang, limit = 10) => {
 };
 
 const mostByLang = async (lang, limit = 10) => {
-  const andBlock = [{ isInDict: true }];
+  const d = new Date();
+  d.setMonth(d.getMonth() - 3);
+  const andBlock = [
+    {
+      isInDict: true,
+      createdAt: {
+        $gte: startOfDay(d),
+      },
+    },
+  ];
   if (lang !== 'tumu') {
     andBlock.push({ secilenDil: lang });
   }
