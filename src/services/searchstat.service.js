@@ -67,6 +67,8 @@ const latestByLang = async (lang, limit = 10) => {
       $limit: limit,
     },
   ]);
+  // eslint-disable-next-line no-console
+  console.log('latestByLang:', stat);
   return stat;
 };
 
@@ -111,6 +113,8 @@ const mostByLang = async (lang, limit = 10) => {
       $limit: limit,
     },
   ]);
+  // eslint-disable-next-line no-console
+  console.log('mostByLang:', stat);
   return stat;
 };
 
