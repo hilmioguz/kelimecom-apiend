@@ -31,7 +31,7 @@ const querySearchstat = async (filter, options) => {
 
 const latestByLang = async (lang, limit = 10) => {
   const d = new Date();
-  d.setMonth(d.getMonth() - 3);
+  d.setMonth(d.getMonth() - 1);
   const andBlock = [
     {
       isInDict: true,
