@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { tokenService, emailService } = require('.');
+const emailService = require('./email.service');
+const tokenService = require('./token.service');
 
 // const { sendWelcomeEmail } = require('./email.service');
 // const { generateResetPasswordToken } = require('./token.service');
@@ -65,9 +66,25 @@ const createMassUser = async (userBody) => {
       throw new ApiError(httpStatus.BAD_REQUEST, error.message);
     });
 
+  // const list = await Promise.all(
+  //   userBody.users.map(async (row) => {
+  //     const email = row.email.toString();
+  //     const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
+  //     return {
+  //       name: row.name.toString(),
+  //       email,
+  //       resetPasswordToken,
+  //     };
+  //   })
+  // );
   const list = await Promise.all(
     userBody.users.map(async (row) => {
       const email = row.email.toString();
+      // Check if tokenService is correctly defined
+      if (!tokenService || typeof tokenService.generateResetPasswordToken !== 'function') {
+        throw new Error('tokenService is not initialized correctly');
+      }
+
       const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
       return {
         name: row.name.toString(),
