@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
-const emailService = require('./email.service');
-const tokenService = require('./token.service');
+const { sendWelcomeEmail } = require('./email.service');
+const { generateResetPasswordToken } = require('./token.service');
 
 const { ObjectId } = mongoose.Types;
 
@@ -66,7 +66,7 @@ const createMassUser = async (userBody) => {
   const list = await Promise.all(
     userBody.users.map(async (row) => {
       const email = row.email.toString();
-      const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
+      const resetPasswordToken = await generateResetPasswordToken(email);
       return {
         name: row.name.toString(),
         email,
@@ -104,7 +104,7 @@ const createGoogleUser = async (profile) => {
       const user = await User.create(payload);
       // eslint-disable-next-line no-console
       console.log('GOOGLE USER CREATED:');
-      emailService.sendWelcomeEmail(user.email, user.name);
+      sendWelcomeEmail(user.email, user.name);
       return user;
     } catch (error) {
       const user = await User.findOne({ email: payload.email });
