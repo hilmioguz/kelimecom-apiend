@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 const emailService = require('./email.service');
-const tokenService = require('./token.service');
 
 // const { sendWelcomeEmail } = require('./email.service');
 // const { generateResetPasswordToken } = require('./token.service');
@@ -59,7 +58,7 @@ const createMassUser = async (userBody) => {
     }))
   );
 
-  await User.collection
+  const result = await User.collection
     .bulkWrite(bulkOps)
     .then((results) => results)
     .catch((error) => {
@@ -77,23 +76,8 @@ const createMassUser = async (userBody) => {
   //     };
   //   })
   // );
-  const list = await Promise.all(
-    userBody.users.map(async (row) => {
-      const email = row.email.toString();
-      // Check if tokenService is correctly defined
-      if (!tokenService || typeof tokenService.generateResetPasswordToken !== 'function') {
-        throw new Error('tokenService is not initialized correctly');
-      }
 
-      const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
-      return {
-        name: row.name.toString(),
-        email,
-        resetPasswordToken,
-      };
-    })
-  );
-  return list;
+  return result;
 };
 /**
  * Create a user coming from outh goole sign

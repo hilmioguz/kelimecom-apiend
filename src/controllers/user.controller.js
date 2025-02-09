@@ -2,7 +2,7 @@ const httpStatus = require('http-status');
 const prefilter = require('../utils/prefilter');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
-const { userService } = require('../services');
+const { userService, tokenService } = require('../services');
 
 const createUser = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
@@ -11,7 +11,26 @@ const createUser = catchAsync(async (req, res) => {
 
 const createMassUser = catchAsync(async (req, res) => {
   const user = await userService.createMassUser(req.body);
-  res.status(httpStatus.CREATED).send(user);
+  if (user) {
+    const list = await Promise.all(
+      req.body.users.map(async (row) => {
+        const email = row.email.toString();
+        // Check if tokenService is correctly defined
+        if (!tokenService || typeof tokenService.generateResetPasswordToken !== 'function') {
+          throw new Error('tokenService is not initialized correctly');
+        }
+        const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
+        return {
+          name: row.name.toString(),
+          email,
+          resetPasswordToken,
+        };
+      })
+    );
+    res.status(httpStatus.CREATED).send(list);
+  } else {
+    res.status(httpStatus.CREATED).send(user);
+  }
 });
 
 const followUnfollow = catchAsync(async (req, res) => {
