@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
-const { emailService } = require('./email.service');
-const { tokenService } = require('./token.service');
+const emailService = require('./email.service');
+const tokenService = require('./token.service');
 
 const { ObjectId } = mongoose.Types;
 
