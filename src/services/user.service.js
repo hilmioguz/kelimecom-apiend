@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const { User } = require('../models');
 const ApiError = require('../utils/ApiError');
 const { emailService } = require('./email.service');
+const { tokenService } = require('./token.service');
 
 const { ObjectId } = mongoose.Types;
 
@@ -55,13 +56,25 @@ const createMassUser = async (userBody) => {
     }))
   );
 
-  const result = await User.collection
+  await User.collection
     .bulkWrite(bulkOps)
     .then((results) => results)
     .catch((error) => {
       throw new ApiError(httpStatus.BAD_REQUEST, error.message);
     });
-  return result;
+
+  const list = await Promise.all(
+    userBody.users.map(async (row) => {
+      const email = row.email.toString();
+      const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
+      return {
+        name: row.name.toString(),
+        email,
+        resetPasswordToken,
+      };
+    })
+  );
+  return list;
 };
 /**
  * Create a user coming from outh goole sign
