@@ -1,4 +1,5 @@
 const httpStatus = require('http-status');
+const fs = require('fs');
 const prefilter = require('../utils/prefilter');
 const ApiError = require('../utils/ApiError');
 const catchAsync = require('../utils/catchAsync');
@@ -11,26 +12,52 @@ const createUser = catchAsync(async (req, res) => {
 
 const createMassUser = catchAsync(async (req, res) => {
   const user = await userService.createMassUser(req.body);
-  if (user) {
-    const list = await Promise.all(
-      req.body.users.map(async (row) => {
-        const email = row.email.toString();
-        // Check if tokenService is correctly defined
-        if (!tokenService || typeof tokenService.generateResetPasswordToken !== 'function') {
-          throw new Error('tokenService is not initialized correctly');
+  const data = await Promise.all(
+    req.body.users.map(async (row) => {
+      const email = row.email.toString();
+      // Check if tokenService is correctly defined
+      if (!tokenService || typeof tokenService.generateResetPasswordToken !== 'function') {
+        throw new Error('tokenService is not initialized correctly');
+      }
+      const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
+      return {
+        name: row.name.toString(),
+        email,
+        resetPasswordToken,
+      };
+    })
+  );
+
+  // Specify the file path
+  const filePath = './toplukullanici.txt';
+
+  // Open the file (create if it doesn't exist) and write to it
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  fs.open(filePath, 'w', (err, fd) => {
+    if (err) {
+      // eslint-disable-next-line no-console
+      console.error('Error opening file:', err);
+    } else {
+      // Write data to the file
+      fs.write(fd, JSON.stringify(data), (err3) => {
+        if (err3) {
+          // eslint-disable-next-line no-console
+          console.error('Error writing file:', err3);
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('File created and written successfully!');
         }
-        const resetPasswordToken = await tokenService.generateResetPasswordToken(email);
-        return {
-          name: row.name.toString(),
-          email,
-          resetPasswordToken,
-        };
-      })
-    );
-    res.status(httpStatus.CREATED).send(list);
-  } else {
-    res.status(httpStatus.CREATED).send(user);
-  }
+        // Close the file descriptor
+        fs.close(fd, (err2) => {
+          if (err2) {
+            // eslint-disable-next-line no-console
+            console.error('Error closing file:', err2);
+          }
+        });
+      });
+    }
+  });
+  res.status(httpStatus.CREATED).send(user);
 });
 
 const followUnfollow = catchAsync(async (req, res) => {
