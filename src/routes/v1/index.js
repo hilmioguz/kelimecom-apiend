@@ -38,12 +38,22 @@ router.get('/', (req, res) => {
 
 // Health check endpoint
 router.get('/health', (req, res) => {
+  const mongoose = require('mongoose');
+  const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     memory: process.memoryUsage(),
-    version: process.env.npm_package_version || '1.0.0'
+    version: process.env.npm_package_version || '1.0.0',
+    mongodb: {
+      status: mongoStatus,
+      readyState: mongoose.connection.readyState,
+      host: mongoose.connection.host,
+      port: mongoose.connection.port,
+      name: mongoose.connection.name
+    }
   });
 });
 

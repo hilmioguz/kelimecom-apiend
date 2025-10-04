@@ -4,14 +4,43 @@ const config = require('./config/config');
 const logger = require('./config/logger');
 const configInit = require('./config/init');
 
+// MongoDB bağlantı durumu kontrolü
+const checkMongoConnection = () => {
+  if (mongoose.connection.readyState !== 1) {
+    logger.error('MongoDB connection lost! ReadyState:', mongoose.connection.readyState);
+    return false;
+  }
+  return true;
+};
+
+// Her 30 saniyede bir MongoDB bağlantısını kontrol et
+setInterval(() => {
+  if (!checkMongoConnection()) {
+    logger.error('MongoDB connection check failed, attempting to reconnect...');
+    mongoose.connect(config.mongoose.url, config.mongoose.options)
+      .then(() => {
+        logger.info('MongoDB reconnected successfully');
+      })
+      .catch((error) => {
+        logger.error('MongoDB reconnection failed:', error);
+      });
+  }
+}, 30000);
+
 let server;
-mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
-  logger.info('Connected to MongoDB');
-  server = app.listen(config.port, () => {
-    logger.info(`Listening to port ${config.port}`);
-    configInit();
+mongoose.connect(config.mongoose.url, config.mongoose.options)
+  .then(() => {
+    logger.info('Connected to MongoDB');
+    server = app.listen(config.port, () => {
+      logger.info(`Listening to port ${config.port}`);
+      configInit();
+    });
+  })
+  .catch((error) => {
+    logger.error('MongoDB connection error:', error);
+    logger.error('API server will not start due to MongoDB connection failure');
+    process.exit(1);
   });
-});
 
 const exitHandler = () => {
   if (server) {
