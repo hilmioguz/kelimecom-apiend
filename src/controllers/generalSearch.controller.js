@@ -174,8 +174,11 @@ const getMaddeByRandom = catchAsync(async (req, res) => {
     randomnum = await fs.readFileSync(`${__dirname}/../randomMadde.txt`, 'utf8');
     // console.log(randomnum);
   } catch (err) {
-    console.error(err);
+    console.error('randomMadde.txt dosyası okunamadı:', err.message);
+    // Dosya okunamazsa rastgele bir sayı üret
+    randomnum = Math.floor(Math.random() * 1000) + 1;
   }
+  
   options.skip = Number(randomnum);
   // eslint-disable-next-line no-console
   // console.log('options:', options);
