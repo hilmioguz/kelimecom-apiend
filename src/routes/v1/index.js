@@ -26,6 +26,27 @@ const previewmaddeRoute = require('./previewmadde.route');
 
 const router = express.Router();
 
+// Root endpoint
+router.get('/', (req, res) => {
+  res.status(200).json({
+    message: 'Kelime.com API v1',
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    version: process.env.npm_package_version || '1.0.0'
+  });
+});
+
+// Health check endpoint
+router.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    version: process.env.npm_package_version || '1.0.0'
+  });
+});
+
 const defaultRoutes = [
   {
     path: '/auth',
