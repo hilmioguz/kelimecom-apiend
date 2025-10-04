@@ -11,7 +11,7 @@ const fs = require('fs');
 const config = require('./config/config');
 const morgan = require('./config/morgan');
 const { jwtStrategy } = require('./config/passport');
-const { authLimiter } = require('./middlewares/rateLimiter');
+const { authLimiter, apiLimiter, searchLimiter, sitelanguageLimiter } = require('./middlewares/rateLimiter');
 const routes = require('./routes/v1');
 const { errorConverter, errorHandler } = require('./middlewares/error');
 // const ApiError = require('./utils/ApiError');
@@ -55,10 +55,17 @@ app.options('*', cors());
 app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);
 
+// Rate limiting - tüm ortamlarda aktif
+app.use('/v1', apiLimiter); // Genel API rate limiting
+
 // limit repeated failed requests to auth endpoints
 if (config.env === 'production') {
   app.use('/v1/auth', authLimiter);
 }
+
+// Özel endpoint rate limiting
+app.use('/v1/generalsearch', searchLimiter);
+app.use('/v1/sitelanguage', sitelanguageLimiter);
 
 // v1 api routes
 app.use('/v1', routes);

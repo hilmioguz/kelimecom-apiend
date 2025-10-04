@@ -11,8 +11,7 @@ const createSiteLanguage = catchAsync(async (req, res) => {
 
 const getSiteLanguages = catchAsync(async (req, res) => {
   const { filter, options } = prefilter(req, ['isActive']);
-  options.sortBy = 'order';
-  options.sortDesc = -1;
+  // Prefilter zaten sortBy ve sortDesc'i doğru şekilde ayarlıyor
   const result = await siteLanguageService.querySiteLanguages(filter, options);
   res.send(result);
 });

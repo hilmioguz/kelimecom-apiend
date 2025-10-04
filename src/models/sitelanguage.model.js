@@ -30,6 +30,10 @@ siteLanguageSchema.plugin(AutoIncrement, { inc_field: 'order' });
 siteLanguageSchema.plugin(toJSON);
 siteLanguageSchema.plugin(paginate);
 
+// Indexes for performance
+siteLanguageSchema.index({ isActive: 1, order: 1 });
+siteLanguageSchema.index({ value: 1 });
+
 siteLanguageSchema.statics.isSiteLanguageAlrearyInDB = async function (value, excludeLangId) {
   const lang = await this.findOne({ value, _id: { $ne: excludeLangId } });
   return !!lang;
