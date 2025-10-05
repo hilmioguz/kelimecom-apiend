@@ -4,6 +4,12 @@ const config = require('./config/config');
 const logger = require('./config/logger');
 const configInit = require('./config/init');
 
+// MongoDB query logging'i aktif et
+require('./middlewares/mongoLogger');
+
+// Mongoose deprecation warning'ini düzelt
+mongoose.set('strictQuery', false);
+
 // MongoDB bağlantı durumu kontrolü
 const checkMongoConnection = () => {
   if (mongoose.connection.readyState !== 1) {

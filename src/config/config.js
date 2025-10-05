@@ -38,16 +38,21 @@ if (error) {
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
-  mongoose: {
-    url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
-    options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      maxPoolSize: 10,        // Maximum number of connections in the pool
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-    },
-  },
+        mongoose: {
+          url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
+          options: {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            maxPoolSize: 20,        // Increased pool size
+            minPoolSize: 5,         // Minimum connections
+            serverSelectionTimeoutMS: 10000, // Increased to 10 seconds
+            socketTimeoutMS: 60000, // Increased to 60 seconds
+            connectTimeoutMS: 10000, // Connection timeout
+            maxIdleTimeMS: 30000,   // Close connections after 30 seconds of inactivity
+            retryWrites: true,
+            retryReads: true,
+          },
+        },
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,

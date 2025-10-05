@@ -1,49 +1,28 @@
 const mongoose = require('mongoose');
-const autopop = require('mongoose-autopopulate');
 
-const { toJSON, paginate } = require('./plugins');
-
-const { Schema } = mongoose;
-
-const searchstatSchema = mongoose.Schema(
+const searchstatSchema = new mongoose.Schema(
   {
     searchTerm: {
       type: String,
+      required: true,
     },
     searchType: {
       type: String,
-      default: '',
+      required: true,
     },
     secilenDil: {
       type: String,
-    },
-    secilenSozluk: {
-      type: String,
-      default: '',
-    },
-    secilenTip: {
-      type: String,
-      default: '',
-    },
-    searchedBy: {
-      type: String,
-      default: '',
     },
     isInDict: {
       type: Boolean,
       default: false,
     },
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Kurumlar',
-      default: null, // standard paket id in db
-      autopopulate: true,
+    clientIp: {
+      type: String,
     },
-    kurumId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Kurumlar',
-      default: null, // standard paket id in db
-      autopopulate: true,
+    userId: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'User',
     },
   },
   {
@@ -51,13 +30,29 @@ const searchstatSchema = mongoose.Schema(
   }
 );
 
-// add plugin that converts mongoose to json
-searchstatSchema.plugin(toJSON);
-searchstatSchema.plugin(paginate);
-searchstatSchema.plugin(autopop);
-/**
- * @typedef Searchstat
- */
+// Performans için kritik indexler
+searchstatSchema.index({ 
+  isInDict: 1, 
+  createdAt: -1, 
+  searchType: 1 
+});
+
+searchstatSchema.index({ 
+  isInDict: 1, 
+  secilenDil: 1, 
+  createdAt: -1, 
+  searchType: 1 
+});
+
+searchstatSchema.index({ 
+  searchTerm: 1, 
+  createdAt: -1 
+});
+
+searchstatSchema.index({ 
+  createdAt: -1 
+});
+
 const Searchstat = mongoose.model('Searchstat', searchstatSchema);
 
 module.exports = Searchstat;

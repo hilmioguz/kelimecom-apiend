@@ -30,8 +30,22 @@ const querySearchstat = async (filter, options) => {
 };
 
 const latestByLang = async (lang, limit = 10) => {
+  const startTime = Date.now();
+  console.log(`🔍 [SEARCHSTAT-SERVICE] latestByLang started - lang: ${lang}, limit: ${limit}`);
+  
+  // Cache kontrolü
+  const cacheService = require('./cache.service');
+  const cacheKey = `latestByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
+  const cached = await cacheService.get(cacheKey);
+  if (cached) {
+    console.log(`💾 [SEARCHSTAT-SERVICE] Cache hit for latestByLang: ${lang}`);
+    return cached;
+  }
+  
+  // Daha kısa tarih aralığı (1 hafta yerine 1 ay)
   const d = new Date();
-  d.setMonth(d.getMonth() - 1);
+  d.setDate(d.getDate() - 7); // 1 hafta öncesi
+  
   const andBlock = [
     {
       isInDict: true,
@@ -43,7 +57,8 @@ const latestByLang = async (lang, limit = 10) => {
   if (lang !== 'tumu') {
     andBlock.push({ secilenDil: lang });
   }
-  const stat = await Searchstat.aggregate([
+  
+  const aggregationPipeline = [
     {
       $match: {
         $and: andBlock,
@@ -66,15 +81,44 @@ const latestByLang = async (lang, limit = 10) => {
     {
       $limit: limit,
     },
-  ]);
+  ];
+  
+  const stat = await Searchstat.aggregate(aggregationPipeline);
+  
+  const endTime = Date.now();
+  const duration = endTime - startTime;
+  
+  console.log(`✅ [SEARCHSTAT-SERVICE] latestByLang completed`);
+  console.log(`⏱️ Duration: ${duration}ms`);
+  console.log(`📈 Result Count: ${stat.length}`);
+  console.log(`🔎 Query Details:`, JSON.stringify(aggregationPipeline, null, 2));
+  
+  // Cache'e kaydet (1 saat)
+  await cacheService.set(cacheKey, stat, 3600);
+  console.log(`💾 [SEARCHSTAT-SERVICE] Cached latestByLang: ${lang}`);
+  
   // eslint-disable-next-line no-console
   console.log('latestByLang:', stat);
   return stat;
 };
 
 const mostByLang = async (lang, limit = 10) => {
+  const startTime = Date.now();
+  console.log(`🔍 [SEARCHSTAT-SERVICE] mostByLang started - lang: ${lang}, limit: ${limit}`);
+  
+  // Cache kontrolü
+  const cacheService = require('./cache.service');
+  const cacheKey = `mostByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
+  const cached = await cacheService.get(cacheKey);
+  if (cached) {
+    console.log(`💾 [SEARCHSTAT-SERVICE] Cache hit for mostByLang: ${lang}`);
+    return cached;
+  }
+  
+  // Daha kısa tarih aralığı (1 ay yerine 3 ay)
   const d = new Date();
-  d.setMonth(d.getMonth() - 3);
+  d.setDate(d.getDate() - 30); // 1 ay öncesi
+  
   const andBlock = [
     {
       isInDict: true,
@@ -86,7 +130,8 @@ const mostByLang = async (lang, limit = 10) => {
   if (lang !== 'tumu') {
     andBlock.push({ secilenDil: lang });
   }
-  const stat = await Searchstat.aggregate([
+  
+  const aggregationPipeline = [
     {
       $match: {
         $and: andBlock,
@@ -112,7 +157,22 @@ const mostByLang = async (lang, limit = 10) => {
     {
       $limit: limit,
     },
-  ]);
+  ];
+  
+  const stat = await Searchstat.aggregate(aggregationPipeline);
+  
+  const endTime = Date.now();
+  const duration = endTime - startTime;
+  
+  console.log(`✅ [SEARCHSTAT-SERVICE] mostByLang completed`);
+  console.log(`⏱️ Duration: ${duration}ms`);
+  console.log(`📈 Result Count: ${stat.length}`);
+  console.log(`🔎 Query Details:`, JSON.stringify(aggregationPipeline, null, 2));
+  
+  // Cache'e kaydet (1 saat)
+  await cacheService.set(cacheKey, stat, 3600);
+  console.log(`💾 [SEARCHSTAT-SERVICE] Cached mostByLang: ${lang}`);
+  
   // eslint-disable-next-line no-console
   console.log('mostByLang:', stat);
   return stat;

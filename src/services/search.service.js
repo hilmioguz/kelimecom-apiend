@@ -662,6 +662,28 @@ const getKelimeById = async (id, dictId) => {
 };
 
 const getKelimeByMadde = async (options) => {
+  const startTime = Date.now();
+  console.log(`🔍 [SEARCH-SERVICE] getKelimeByMadde started`);
+  console.log(`📊 Options:`, JSON.stringify(options, null, 2));
+  
+  // Cache kontrolü (sadece ilksorgu ve advanced için)
+  if (options.searchType === 'ilksorgu' || options.searchType === 'advanced') {
+    const cacheService = require('./cache.service');
+    const cacheKey = cacheService.generateKey('search', {
+      searchTerm: options.searchTerm,
+      searchType: options.searchType,
+      searchFilter: options.searchFilter,
+      limit: options.limit,
+      page: options.page
+    });
+    
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      console.log(`💾 [SEARCH-SERVICE] Cache hit for: ${options.searchTerm}`);
+      return cached;
+    }
+  }
+  
   const conditionalMatch = {};
 
   if (options.searchTip && options.searchTip !== 'tumu' && options.searchTip !== 'undefined') {
@@ -806,6 +828,29 @@ const getKelimeByMadde = async (options) => {
     }
   });
 
+  const endTime = Date.now();
+  const duration = endTime - startTime;
+  
+  console.log(`✅ [SEARCH-SERVICE] getKelimeByMadde completed`);
+  console.log(`⏱️ Duration: ${duration}ms`);
+  console.log(`📈 Result Count: ${maddeler?.data?.length || 0}`);
+  console.log(`🔎 Aggregation Pipeline:`, JSON.stringify(aggArray, null, 2));
+  
+  // Cache'e kaydet (sadece ilksorgu ve advanced için)
+  if (options.searchType === 'ilksorgu' || options.searchType === 'advanced') {
+    const cacheService = require('./cache.service');
+    const cacheKey = cacheService.generateKey('search', {
+      searchTerm: options.searchTerm,
+      searchType: options.searchType,
+      searchFilter: options.searchFilter,
+      limit: options.limit,
+      page: options.page
+    });
+    
+    await cacheService.set(cacheKey, maddeler, 1800); // 30 dakika cache
+    console.log(`💾 [SEARCH-SERVICE] Cached result for: ${options.searchTerm}`);
+  }
+  
   return maddeler;
 };
 
