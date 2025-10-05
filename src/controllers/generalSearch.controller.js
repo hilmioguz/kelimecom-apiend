@@ -171,8 +171,13 @@ const getMaddeByRandom = catchAsync(async (req, res) => {
   let randomnum = 1;
   try {
     // eslint-disable-next-line security/detect-non-literal-fs-filename
-    randomnum = await fs.readFileSync(`${__dirname}/../randomMadde.txt`, 'utf8');
-    // console.log(randomnum);
+    const fileContent = await fs.readFileSync(`${__dirname}/../randomMadde.txt`, 'utf8');
+    randomnum = parseInt(fileContent.trim());
+    
+    // Geçersiz sayı kontrolü
+    if (isNaN(randomnum) || randomnum < 1 || randomnum > 10000) {
+      randomnum = Math.floor(Math.random() * 1000) + 1;
+    }
   } catch (err) {
     console.error('randomMadde.txt dosyası okunamadı:', err.message);
     // Dosya okunamazsa rastgele bir sayı üret
@@ -180,13 +185,12 @@ const getMaddeByRandom = catchAsync(async (req, res) => {
   }
   
   options.skip = Number(randomnum);
-  // eslint-disable-next-line no-console
-  // console.log('options:', options);
+  console.log('Random madde options:', options);
 
   const madde = await searchService.getKelimeByMadde(options);
 
-  if (!madde) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'Madde bulunamadı');
+  if (!madde || !madde.data || madde.data.length === 0) {
+    throw new ApiError(httpStatus.NOT_FOUND, 'Rastgele madde bulunamadı');
   }
   res.send(madde);
 });
