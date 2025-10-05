@@ -244,7 +244,30 @@ const maddeSchema = mongoose.Schema(
   }
 );
 
+// Text index for madde field
 maddeSchema.index({ madde: 'text' });
+
+// Index for exactwithdash queries - madde field regex searches
+maddeSchema.index({ madde: 1 });
+
+// Index for digeryazim array field
+maddeSchema.index({ digeryazim: 1 });
+
+// Index for whichDict.dictId for lookup performance
+maddeSchema.index({ 'whichDict.dictId': 1 });
+
+// Index for whichDict.anlam for maddeanlam queries
+maddeSchema.index({ 'whichDict.anlam': 'text' });
+
+// Compound index for whichDict.dictId and whichDict.anlam
+maddeSchema.index({ 'whichDict.dictId': 1, 'whichDict.anlam': 1 });
+
+// Index for whichDict.tip for tip filtering
+maddeSchema.index({ 'whichDict.tip': 1 });
+
+// Compound index for performance optimization
+maddeSchema.index({ madde: 1, 'whichDict.dictId': 1 });
+
 // add plugin that converts mongoose to json
 // maddeSchema.plugin(slug, { tmpl: '<%=madde%>' });
 maddeSchema.plugin(toJSON);

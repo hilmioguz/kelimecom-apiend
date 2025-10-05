@@ -77,6 +77,21 @@ dictionarySchema.statics.isDictionariesAlrearyInDB = async function (name, exclu
 /**
  * @typedef Dictionaries
  */
+// Index for lang field for lookup performance
+dictionarySchema.index({ lang: 1 });
+
+// Index for code field for lookup performance
+dictionarySchema.index({ code: 1 });
+
+// Compound index for lang and code
+dictionarySchema.index({ lang: 1, code: 1 });
+
+// Index for isActive field
+dictionarySchema.index({ isActive: 1 });
+
+// Compound index for isActive and lang (already exists but ensuring it's there)
+dictionarySchema.index({ isActive: 1, lang: 1 });
+
 const Dictionaries = mongoose.model('Dictionaries', dictionarySchema);
 
 module.exports = Dictionaries;

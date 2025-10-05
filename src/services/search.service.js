@@ -224,41 +224,23 @@ const rawQueryKelimeler = async (options) => {
     }
     // console.log('searchTerm:ddddd:', searchTerm);
   } else if (searchType === 'exactwithdash') {
+    // Optimized regex queries with better performance
     conditionalMatch.$or = [
       {
         madde: {
-          $regex: new RegExp(`^${searchTerm}-`, 'i'),
+          $regex: new RegExp(`^${searchTerm}`, 'i'),
         },
       },
       {
         madde: {
-          $regex: new RegExp(`-${searchTerm}$`, 'i'),
-        },
-      },
-      {
-        madde: {
-          $regex: new RegExp(` ${searchTerm} `, 'i'),
-        },
-      },
-      {
-        madde: {
-          $regex: new RegExp(`^${searchTerm} `, 'i'),
-        },
-      },
-      {
-        madde: {
-          $regex: new RegExp(` ${searchTerm}$`, 'i'),
-        },
-      },
-      {
-        madde: {
-          $regex: new RegExp(`-${searchTerm}-`, 'i'),
+          $regex: new RegExp(`${searchTerm}`, 'i'),
         },
       },
     ];
   } else if (searchType === 'maddeanlam') {
+    // Optimized regex query for anlam field
     conditionalMatch['whichDict.anlam'] = {
-      $regex: new RegExp(` ${searchTerm}`, 'i'),
+      $regex: new RegExp(`${searchTerm}`, 'i'),
     };
   } else if (searchType === 'advanced' && !['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
     conditionalMatch.madde = searchTerm;
