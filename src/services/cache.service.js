@@ -14,6 +14,8 @@ class CacheService {
         port: 6379,
         password: process.env.REDIS_PASSWORD || "R3d1sP3SS",
         enable_offline_queue: false,
+        retry_delay_on_failover: 100,
+        max_attempts: 3,
       });
 
       this.client.on('connect', () => {
@@ -24,6 +26,10 @@ class CacheService {
       this.client.on('error', (err) => {
         console.log('❌ [CACHE-SERVICE] Redis error:', err.message);
         this.isConnected = false;
+        // Redis hatası durumunda memory cache'e geç
+        if (!this.memoryCache) {
+          this.memoryCache = new Map();
+        }
       });
 
       this.client.on('disconnect', () => {
@@ -50,7 +56,11 @@ class CacheService {
       return null;
     } catch (error) {
       console.log('❌ [CACHE-SERVICE] Get error:', error.message);
-      return null;
+      // Redis hatası durumunda memory cache'e geç
+      if (!this.memoryCache) {
+        this.memoryCache = new Map();
+      }
+      return this.memoryCache.get(key) || null;
     }
   }
 
@@ -67,6 +77,11 @@ class CacheService {
       }
     } catch (error) {
       console.log('❌ [CACHE-SERVICE] Set error:', error.message);
+      // Redis hatası durumunda memory cache'e geç
+      if (!this.memoryCache) {
+        this.memoryCache = new Map();
+      }
+      this.memoryCache.set(key, value);
     }
   }
 

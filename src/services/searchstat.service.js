@@ -34,12 +34,16 @@ const latestByLang = async (lang, limit = 10) => {
   console.log(`🔍 [SEARCHSTAT-SERVICE] latestByLang started - lang: ${lang}, limit: ${limit}`);
   
   // Cache kontrolü
-  const cacheService = require('./cache.service');
-  const cacheKey = `latestByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
-  const cached = await cacheService.get(cacheKey);
-  if (cached) {
-    console.log(`💾 [SEARCHSTAT-SERVICE] Cache hit for latestByLang: ${lang}`);
-    return cached;
+  try {
+    const cacheService = require('./cache.service');
+    const cacheKey = `latestByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      console.log(`💾 [SEARCHSTAT-SERVICE] Cache hit for latestByLang: ${lang}`);
+      return cached;
+    }
+  } catch (cacheError) {
+    console.log('⚠️ [SEARCHSTAT-SERVICE] Cache error, continuing without cache:', cacheError.message);
   }
   
   // Daha kısa tarih aralığı (1 hafta yerine 1 ay)
@@ -94,8 +98,14 @@ const latestByLang = async (lang, limit = 10) => {
   console.log(`🔎 Query Details:`, JSON.stringify(aggregationPipeline, null, 2));
   
   // Cache'e kaydet (1 saat)
-  await cacheService.set(cacheKey, stat, 3600);
-  console.log(`💾 [SEARCHSTAT-SERVICE] Cached latestByLang: ${lang}`);
+  try {
+    const cacheService = require('./cache.service');
+    const cacheKey = `latestByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
+    await cacheService.set(cacheKey, stat, 3600);
+    console.log(`💾 [SEARCHSTAT-SERVICE] Cached latestByLang: ${lang}`);
+  } catch (cacheError) {
+    console.log('⚠️ [SEARCHSTAT-SERVICE] Cache save error:', cacheError.message);
+  }
   
   // eslint-disable-next-line no-console
   console.log('latestByLang:', stat);
@@ -107,12 +117,16 @@ const mostByLang = async (lang, limit = 10) => {
   console.log(`🔍 [SEARCHSTAT-SERVICE] mostByLang started - lang: ${lang}, limit: ${limit}`);
   
   // Cache kontrolü
-  const cacheService = require('./cache.service');
-  const cacheKey = `mostByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
-  const cached = await cacheService.get(cacheKey);
-  if (cached) {
-    console.log(`💾 [SEARCHSTAT-SERVICE] Cache hit for mostByLang: ${lang}`);
-    return cached;
+  try {
+    const cacheService = require('./cache.service');
+    const cacheKey = `mostByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      console.log(`💾 [SEARCHSTAT-SERVICE] Cache hit for mostByLang: ${lang}`);
+      return cached;
+    }
+  } catch (cacheError) {
+    console.log('⚠️ [SEARCHSTAT-SERVICE] Cache error, continuing without cache:', cacheError.message);
   }
   
   // Daha kısa tarih aralığı (1 ay yerine 3 ay)
@@ -170,8 +184,14 @@ const mostByLang = async (lang, limit = 10) => {
   console.log(`🔎 Query Details:`, JSON.stringify(aggregationPipeline, null, 2));
   
   // Cache'e kaydet (1 saat)
-  await cacheService.set(cacheKey, stat, 3600);
-  console.log(`💾 [SEARCHSTAT-SERVICE] Cached mostByLang: ${lang}`);
+  try {
+    const cacheService = require('./cache.service');
+    const cacheKey = `mostByLang:${lang}:${limit}:${new Date().toISOString().split('T')[0]}`;
+    await cacheService.set(cacheKey, stat, 3600);
+    console.log(`💾 [SEARCHSTAT-SERVICE] Cached mostByLang: ${lang}`);
+  } catch (cacheError) {
+    console.log('⚠️ [SEARCHSTAT-SERVICE] Cache save error:', cacheError.message);
+  }
   
   // eslint-disable-next-line no-console
   console.log('mostByLang:', stat);

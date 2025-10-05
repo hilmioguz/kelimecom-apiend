@@ -668,19 +668,23 @@ const getKelimeByMadde = async (options) => {
   
   // Cache kontrolü (sadece ilksorgu ve advanced için)
   if (options.searchType === 'ilksorgu' || options.searchType === 'advanced') {
-    const cacheService = require('./cache.service');
-    const cacheKey = cacheService.generateKey('search', {
-      searchTerm: options.searchTerm,
-      searchType: options.searchType,
-      searchFilter: options.searchFilter,
-      limit: options.limit,
-      page: options.page
-    });
-    
-    const cached = await cacheService.get(cacheKey);
-    if (cached) {
-      console.log(`💾 [SEARCH-SERVICE] Cache hit for: ${options.searchTerm}`);
-      return cached;
+    try {
+      const cacheService = require('./cache.service');
+      const cacheKey = cacheService.generateKey('search', {
+        searchTerm: options.searchTerm,
+        searchType: options.searchType,
+        searchFilter: options.searchFilter,
+        limit: options.limit,
+        page: options.page
+      });
+      
+      const cached = await cacheService.get(cacheKey);
+      if (cached) {
+        console.log(`💾 [SEARCH-SERVICE] Cache hit for: ${options.searchTerm}`);
+        return cached;
+      }
+    } catch (cacheError) {
+      console.log('⚠️ [SEARCH-SERVICE] Cache error, continuing without cache:', cacheError.message);
     }
   }
   
@@ -838,17 +842,21 @@ const getKelimeByMadde = async (options) => {
   
   // Cache'e kaydet (sadece ilksorgu ve advanced için)
   if (options.searchType === 'ilksorgu' || options.searchType === 'advanced') {
-    const cacheService = require('./cache.service');
-    const cacheKey = cacheService.generateKey('search', {
-      searchTerm: options.searchTerm,
-      searchType: options.searchType,
-      searchFilter: options.searchFilter,
-      limit: options.limit,
-      page: options.page
-    });
-    
-    await cacheService.set(cacheKey, maddeler, 1800); // 30 dakika cache
-    console.log(`💾 [SEARCH-SERVICE] Cached result for: ${options.searchTerm}`);
+    try {
+      const cacheService = require('./cache.service');
+      const cacheKey = cacheService.generateKey('search', {
+        searchTerm: options.searchTerm,
+        searchType: options.searchType,
+        searchFilter: options.searchFilter,
+        limit: options.limit,
+        page: options.page
+      });
+      
+      await cacheService.set(cacheKey, maddeler, 1800); // 30 dakika cache
+      console.log(`💾 [SEARCH-SERVICE] Cached result for: ${options.searchTerm}`);
+    } catch (cacheError) {
+      console.log('⚠️ [SEARCH-SERVICE] Cache save error:', cacheError.message);
+    }
   }
   
   return maddeler;
