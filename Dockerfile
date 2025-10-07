@@ -6,9 +6,11 @@ WORKDIR /usr/src/apiend
 
 COPY package.json yarn.lock ./
 
+RUN corepack enable
+
 USER node
 
-RUN corepack enable && yarn install --pure-lockfile
+RUN yarn install --pure-lockfile
 
 COPY --chown=node:node . .
 
