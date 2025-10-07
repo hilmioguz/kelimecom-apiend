@@ -11,7 +11,7 @@ RUN corepack enable
 USER node
 
 RUN yarn install --pure-lockfile
-
+dockerfile güncellemesi
 COPY --chown=node:node . .
 
 # randomMadde.txt dosyasına yazma izni ver
