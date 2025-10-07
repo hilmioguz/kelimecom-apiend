@@ -9,6 +9,9 @@ const envVarsSchema = Joi.object()
     NODE_ENV: Joi.string().valid('production', 'development', 'test').required(),
     PORT: Joi.number().default(5001),
     MONGODB_URL: Joi.string().required().description('Mongo DB url'),
+    ELASTICSEARCH_URL: Joi.string().default('http://localhost:9200').description('Elasticsearch URL'),
+    ELASTICSEARCH_USER: Joi.string().optional().description('Elasticsearch username'),
+    ELASTICSEARCH_PASSWORD: Joi.string().optional().description('Elasticsearch password'),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -38,21 +41,30 @@ if (error) {
 module.exports = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
-        mongoose: {
-          url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
-          options: {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            maxPoolSize: 20,        // Increased pool size
-            minPoolSize: 5,         // Minimum connections
-            serverSelectionTimeoutMS: 10000, // Increased to 10 seconds
-            socketTimeoutMS: 60000, // Increased to 60 seconds
-            connectTimeoutMS: 10000, // Connection timeout
-            maxIdleTimeMS: 30000,   // Close connections after 30 seconds of inactivity
-            retryWrites: true,
-            retryReads: true,
-          },
-        },
+  mongoose: {
+    url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
+    options: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      maxPoolSize: 20,        // Increased pool size
+      minPoolSize: 5,         // Minimum connections
+      serverSelectionTimeoutMS: 10000, // Increased to 10 seconds
+      socketTimeoutMS: 60000, // Increased to 60 seconds
+      connectTimeoutMS: 10000, // Connection timeout
+      maxIdleTimeMS: 30000,   // Close connections after 30 seconds of inactivity
+      retryWrites: true,
+      retryReads: true,
+    },
+  },
+  elasticsearch: {
+    url: envVars.ELASTICSEARCH_URL,
+    auth: envVars.ELASTICSEARCH_USER && envVars.ELASTICSEARCH_PASSWORD
+      ? {
+          username: envVars.ELASTICSEARCH_USER,
+          password: envVars.ELASTICSEARCH_PASSWORD,
+        }
+      : undefined,
+  },
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,

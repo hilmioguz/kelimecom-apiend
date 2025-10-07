@@ -10,6 +10,15 @@ const logger = require('../config/logger');
 // eslint-disable-next-line no-unused-vars
 const { ObjectId } = mongoose.Types;
 
+// Elasticsearch service (lazy load to avoid circular dependency)
+let elasticsearchService = null;
+const getElasticsearchService = () => {
+  if (!elasticsearchService) {
+    elasticsearchService = require('./elasticsearch.service');
+  }
+  return elasticsearchService;
+};
+
 /**
  * Create a packet
  * @param {Object} packetBody
@@ -92,12 +101,42 @@ const updateDigeryazim = async () => {
 };
 
 const rawQueryKelimeler = async (options) => {
+  const { searchType, searchFilter } = options;
+  
+  // ⚡ PERFORMANCE: Use Elasticsearch for ilksorgu (first search)
+  if (searchType === 'ilksorgu') {
+    try {
+      const es = getElasticsearchService();
+      
+      const esOptions = {
+        searchTerm: decodeURIComponent(options.searchTerm),
+        searchDil: searchFilter?.dil,
+        searchTip: searchFilter?.tip,
+        searchDict: searchFilter?.sozluk,
+        filterOrders: searchFilter?.filterOrders,
+        limit: options.limit || 7,
+        page: options.page || 1,
+      };
+      
+      logger.info(`🚀 [SEARCH] Using Elasticsearch for ilksorgu: "${esOptions.searchTerm}"`);
+      
+      const result = await es.searchMaddeIlksorgu(esOptions);
+      
+      logger.info(`✅ [SEARCH] Elasticsearch returned ${result.docs?.length || 0} results`);
+      
+      return result;
+    } catch (esError) {
+      logger.error(`❌ [SEARCH] Elasticsearch error, falling back to MongoDB: ${esError.message}`);
+      // Fallback to MongoDB on error
+    }
+  }
+  
+  // MongoDB fallback or other search types
   const conditionalMatch = {};
   const conditionalMatch2 = {};
   const conditionalMatch3 = {};
   let { searchTerm } = options;
   searchTerm = decodeURIComponent(searchTerm);
-  const { searchType, searchFilter } = options;
 
   let hiddenTur = '';
   if (searchTerm.includes('_')) {
@@ -257,16 +296,31 @@ const rawQueryKelimeler = async (options) => {
     // }
     // eslint-disable-next-line no-console
     console.log('ILKSORUGUUUUUU DA BURDA');
-    conditionalMatch.$or = [
-      {
-        madde: {
-          $regex: new RegExp(`^${searchTerm}`, 'i'), //  madde: { $regex: new RegExp('^kal[aâ]', 'ig')}
-        },
-      },
-      {
-        digeryazim: { $in: [new RegExp(`^${searchTerm}`, 'i')] }, // digeryazim: { $in: [/^cal[âa]y/ig]}
-      },
-    ];
+    console.log('🔍 Original searchTerm:', searchTerm);
+    
+    // ⚡ PERFORMANCE FIX: Use MongoDB text search (uses text index!)
+    // This is MUCH faster than regex for full-text search
+    const simplePattern = searchTerm
+      .replace(/\[aâ\]/g, 'a')
+      .replace(/\[iîı\]/g, 'i')
+      .replace(/\[uûü\]/g, 'u')
+      .replace(/\[oôö\]/g, 'o')
+      .toLowerCase();
+    
+    console.log('🔍 Simplified pattern:', simplePattern);
+    
+    // Use MongoDB text search (leverages text index)
+    conditionalMatch.$text = {
+      $search: simplePattern,
+      $caseSensitive: false,
+      $diacriticSensitive: false  // Handles â, ş, etc.
+    };
+    
+    // 💡 TODO: Consider Elasticsearch for production
+    // - Full-text search optimized
+    // - Turkish/Arabic/Persian analyzers
+    // - Fuzzy matching, typo tolerance
+    // - Sub-100ms response times
   }
   if (hiddenTur) {
     conditionalMatch2['whichDict.tur'] = { $in: [hiddenTur] };
@@ -453,18 +507,26 @@ const rawQueryKelimeler = async (options) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-      {
+    ];
+    
+    // ⚠️ PERFORMANCE: Skip expensive karsi lookup for ilksorgu
+    if (searchType !== 'ilksorgu') {
+      condition.push({
         $lookup: {
           from: 'maddes',
           localField: 'whichDict.karsi',
           foreignField: '_id',
           as: 'karsi',
         },
-      },
-      {
+      });
+    }
+    
+    // Only add match if there are actual conditions
+    if (Object.keys(conditionalMatch2).length > 0) {
+      condition.push({
         $match: conditionalMatch2,
-      },
-    ];
+      });
+    }
   }
 
   if (searchType === 'advanced') {
@@ -503,34 +565,35 @@ const rawQueryKelimeler = async (options) => {
       }
     );
   } else if (searchType === 'ilksorgu') {
+    // ⚡ PERFORMANCE: Simplified pipeline for ilksorgu (first search)
+    // Instead of complex grouping, just add langOrder and sort
     condition.push({
       $addFields: {
         langOrder: {
           $switch: {
             branches: langOrders,
+            default: 999,  // Unknown languages go last
           },
         },
+        maddeLength: { $strLenCP: '$madde' },
+        maddeId: { $toString: '$_id' },
       },
     });
-    condition.push(groupCond);
-    condition.push(
-      {
-        $unwind: {
-          path: '$madde',
-        },
-      },
-      {
-        $unwind: {
-          path: '$langOrder',
-        },
-      },
-      {
-        $addFields: {
-          maddeLength: { $strLenCP: '$madde' },
-        },
+    
+    // Simple project to flatten the structure
+    condition.push({
+      $project: {
+        _id: 1,
+        madde: 1,
+        maddeId: '$maddeId',
+        maddeLength: 1,
+        langOrder: 1,
+        lang: '$dict.lang',
+        dictId: '$dict._id',
+        dictName: '$dict.name',
+        dictCode: '$dict.code',
       }
-    );
-    condition = condition.concat(groupExtra);
+    });
   } else {
     condition.push({
       $addFields: {
@@ -544,7 +607,8 @@ const rawQueryKelimeler = async (options) => {
     });
   }
 
-  if (conditionalMatch3) {
+  // Only add match if there are actual conditions
+  if (conditionalMatch3 && Object.keys(conditionalMatch3).length > 0) {
     condition.push({
       $match: conditionalMatch3,
     });
@@ -552,7 +616,18 @@ const rawQueryKelimeler = async (options) => {
 
   // condition.push({ allowDiskUse: true });
   logger.info(`searchType: ${searchType}`);
-  logger.info(`final condition:${JSON.stringify(condition)}`);
+  
+  // Convert RegExp to string for proper logging
+  const conditionForLog = condition.map(stage => {
+    const stageCopy = JSON.parse(JSON.stringify(stage, (key, value) => {
+      if (value instanceof RegExp) {
+        return value.toString();
+      }
+      return value;
+    }));
+    return stageCopy;
+  });
+  logger.info(`final condition:${JSON.stringify(conditionForLog)}`);
 
   const agg = Madde.aggregate(condition).allowDiskUse(true);
 
@@ -576,6 +651,10 @@ const rawQueryKelimeler = async (options) => {
     }
     return results;
   });
+  
+  // 🧪 DEBUG: Log result count
+  logger.info(`✅ Query completed - Result count: ${maddeler?.docs?.length || 0} / Total: ${maddeler?.totalDocs || 0}`);
+  
   return maddeler;
 };
 

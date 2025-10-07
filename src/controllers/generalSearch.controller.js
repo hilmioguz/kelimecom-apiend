@@ -73,9 +73,15 @@ const getRawKelimeler = catchAsync(async (req, res) => {
 
   const result = await searchService.rawQueryKelimeler(options);
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
-    payload.isInDict = !!(result && result.meta.total > 0);
+    payload.isInDict = !!(result && result.meta && result.meta.total > 0);
     searchstatService.createSearchstat(payload);
   }
+  
+  // Handle undefined result
+  if (!result) {
+    throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Arama sonucu alınamadı');
+  }
+  
   res.send(result);
 });
 
