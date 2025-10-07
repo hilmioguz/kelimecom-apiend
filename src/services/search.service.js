@@ -848,8 +848,8 @@ const getKelimeByMadde = async (options) => {
   }
   const suboptions = { sort: 'maddeLength', limit: options.limit, page: options.page || 1 };
   
-  // ⚠️ FIX: Add maxTimeMS to prevent hanging queries (30 seconds timeout)
-  const agg = Madde.aggregate(aggArray).allowDiskUse(true).maxTimeMS(30000);
+  // ⚠️ FIX: Add allowDiskUse for complex aggregations (maxTimeMS removed for compatibility)
+  const agg = Madde.aggregate(aggArray).allowDiskUse(true);
   
   try {
     const maddeler = await Madde.aggregatePaginate(agg, options.searchType === 'random' ? '' : suboptions, (err, results) => {
