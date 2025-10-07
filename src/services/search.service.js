@@ -131,7 +131,62 @@ const rawQueryKelimeler = async (options) => {
     }
   }
   
-  // MongoDB fallback or other search types
+  // Elasticsearch implementations for other search types
+  if (searchType === 'exact') {
+    try {
+      const es = getElasticsearchService();
+      const esOptions = {
+        searchTerm: decodeURIComponent(options.searchTerm),
+        searchDil: searchFilter?.dil,
+        searchTip: searchFilter?.tip,
+        searchDict: searchFilter?.sozluk,
+        limit: options.limit || 10,
+        page: options.page || 1,
+      };
+      const result = await es.searchMaddeExact(esOptions);
+      return result;
+    } catch (e) {
+      logger.error(`[ES exact] fallback to Mongo: ${e.message}`);
+    }
+  }
+
+  if (searchType === 'maddeanlam') {
+    try {
+      const es = getElasticsearchService();
+      const esOptions = {
+        searchTerm: decodeURIComponent(options.searchTerm),
+        searchDil: searchFilter?.dil,
+        searchTip: searchFilter?.tip,
+        searchDict: searchFilter?.sozluk,
+        limit: options.limit || 10,
+        page: options.page || 1,
+      };
+      const result = await es.searchMaddeAnlam(esOptions);
+      return result;
+    } catch (e) {
+      logger.error(`[ES maddeanlam] fallback to Mongo: ${e.message}`);
+    }
+  }
+
+  if (searchType === 'exactwithdash') {
+    try {
+      const es = getElasticsearchService();
+      const esOptions = {
+        searchTerm: decodeURIComponent(options.searchTerm),
+        searchDil: searchFilter?.dil,
+        searchTip: searchFilter?.tip,
+        searchDict: searchFilter?.sozluk,
+        limit: options.limit || 10,
+        page: options.page || 1,
+      };
+      const result = await es.searchMaddeExactWithDash(esOptions);
+      return result;
+    } catch (e) {
+      logger.error(`[ES exactwithdash] fallback to Mongo: ${e.message}`);
+    }
+  }
+
+  // MongoDB fallback
   const conditionalMatch = {};
   const conditionalMatch2 = {};
   const conditionalMatch3 = {};

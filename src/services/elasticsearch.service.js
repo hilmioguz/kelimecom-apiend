@@ -260,6 +260,206 @@ const healthCheck = async () => {
 
 module.exports = {
   searchMaddeIlksorgu,
+  /**
+   * Exact arama: madde tam eşleşme + isteğe bağlı filtreler
+   */
+  searchMaddeExact: async (options) => {
+    const { searchTerm, searchDil, searchTip, searchDict, limit = 10, page = 1 } = options;
+    const from = (page - 1) * limit;
+
+    const filter = [];
+    if (searchDil && searchDil !== 'tumu' && searchDil !== 'undefined') {
+      filter.push({
+        nested: {
+          path: 'whichDict',
+          query: { term: { 'whichDict.lang': searchDil } },
+        },
+      });
+    }
+    if (searchTip && searchTip !== 'tumu' && searchTip !== 'undefined') {
+      filter.push({
+        nested: {
+          path: 'whichDict',
+          query: { term: { 'whichDict.tip': searchTip } },
+        },
+      });
+    }
+    if (searchDict && searchDict !== 'tumu' && searchDict !== 'undefined') {
+      filter.push({
+        nested: {
+          path: 'whichDict',
+          query: { term: { 'whichDict.code': searchDict } },
+        },
+      });
+    }
+
+    const body = {
+      from,
+      size: limit,
+      query: {
+        bool: {
+          must: [
+            {
+              bool: {
+                should: [
+                  { term: { 'madde.keyword': { value: searchTerm, case_insensitive: true } } },
+                  { term: { 'digeryazim.keyword': { value: searchTerm, case_insensitive: true } } },
+                ],
+                minimum_should_match: 1,
+              },
+            },
+          ],
+          filter,
+        },
+      },
+      _source: ['madde', 'digeryazim', 'whichDict', 'createdAt', 'updatedAt'],
+    };
+
+    const result = await esClient.search({ index: 'maddes', body });
+
+    const docs = result.hits.hits.map((hit) => {
+      const selected = (hit._source.whichDict && hit._source.whichDict[0]) || {};
+      return {
+        _id: hit._id,
+        madde: hit._source.madde,
+        digeryazim: hit._source.digeryazim || [],
+        whichDict: selected,
+        dict: {
+          _id: selected.dictId || null,
+          lang: selected.lang || null,
+          code: selected.code || null,
+          name: selected.name || null,
+        },
+      };
+    });
+
+    return {
+      data: docs,
+      meta: {
+        total: result.hits.total.value,
+        page,
+        limit,
+        totalPages: Math.ceil(result.hits.total.value / limit),
+      },
+    };
+  },
+
+  /**
+   * Anlam araması: whichDict.anlam üzerinde nested search
+   */
+  searchMaddeAnlam: async (options) => {
+    const { searchTerm, searchDil, searchTip, searchDict, limit = 10, page = 1 } = options;
+    const from = (page - 1) * limit;
+
+    const nestedFilters = [];
+    if (searchDil && searchDil !== 'tumu' && searchDil !== 'undefined') nestedFilters.push({ term: { 'whichDict.lang': searchDil } });
+    if (searchTip && searchTip !== 'tumu' && searchTip !== 'undefined') nestedFilters.push({ term: { 'whichDict.tip': searchTip } });
+    if (searchDict && searchDict !== 'tumu' && searchDict !== 'undefined') nestedFilters.push({ term: { 'whichDict.code': searchDict } });
+
+    const body = {
+      from,
+      size: limit,
+      query: {
+        nested: {
+          path: 'whichDict',
+          query: {
+            bool: {
+              must: [
+                {
+                  match: { 'whichDict.anlam': { query: searchTerm, operator: 'and' } },
+                },
+              ],
+              filter: nestedFilters,
+            },
+          },
+          inner_hits: { size: 1 },
+        },
+      },
+      _source: ['madde', 'digeryazim', 'whichDict', 'createdAt', 'updatedAt'],
+    };
+
+    const result = await esClient.search({ index: 'maddes', body });
+
+    const docs = result.hits.hits.map((hit) => {
+      const ih = hit.inner_hits && hit.inner_hits.whichDict && hit.inner_hits.whichDict.hits.hits[0];
+      const selected = ih ? ih._source : ((hit._source.whichDict && hit._source.whichDict[0]) || {});
+      return {
+        _id: hit._id,
+        madde: hit._source.madde,
+        whichDict: selected,
+        dict: {
+          _id: selected.dictId || null,
+          lang: selected.lang || null,
+          code: selected.code || null,
+          name: selected.name || null,
+        },
+      };
+    });
+
+    return {
+      data: docs,
+      meta: {
+        total: result.hits.total.value,
+        page,
+        limit,
+        totalPages: Math.ceil(result.hits.total.value / limit),
+      },
+    };
+  },
+  /**
+   * exactwithdash: prefix + contains araması (Mongo eşleniği)
+   */
+  searchMaddeExactWithDash: async (options) => {
+    const { searchTerm, searchDil, searchTip, searchDict, limit = 10, page = 1 } = options;
+    const from = (page - 1) * limit;
+
+    const filter = [];
+    if (searchDil && searchDil !== 'tumu' && searchDil !== 'undefined') {
+      filter.push({ nested: { path: 'whichDict', query: { term: { 'whichDict.lang': searchDil } } } });
+    }
+    if (searchTip && searchTip !== 'tumu' && searchTip !== 'undefined') {
+      filter.push({ nested: { path: 'whichDict', query: { term: { 'whichDict.tip': searchTip } } } });
+    }
+    if (searchDict && searchDict !== 'tumu' && searchDict !== 'undefined') {
+      filter.push({ nested: { path: 'whichDict', query: { term: { 'whichDict.code': searchDict } } } });
+    }
+
+    const body = {
+      from,
+      size: limit,
+      query: {
+        bool: {
+          should: [
+            { prefix: { madde: searchTerm.toLowerCase() } },
+            { match_phrase: { madde: { query: searchTerm, slop: 0 } } },
+          ],
+          minimum_should_match: 1,
+          filter,
+        },
+      },
+      sort: [{ 'madde.keyword': 'asc' }],
+      _source: ['madde', 'digeryazim', 'whichDict', 'createdAt', 'updatedAt'],
+    };
+
+    const result = await esClient.search({ index: 'maddes', body });
+
+    const docs = result.hits.hits.map((hit) => ({
+      _id: hit._id,
+      madde: hit._source.madde,
+      digeryazim: hit._source.digeryazim || [],
+      whichDict: (hit._source.whichDict && hit._source.whichDict[0]) || {},
+    }));
+
+    return {
+      data: docs,
+      meta: {
+        total: result.hits.total.value,
+        page,
+        limit,
+        totalPages: Math.ceil(result.hits.total.value / limit),
+      },
+    };
+  },
   searchMaddeByTerm,
   healthCheck,
   esClient,
