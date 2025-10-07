@@ -256,6 +256,9 @@ maddeSchema.index({ digeryazim: 1 });
 // Index for whichDict.dictId for lookup performance
 maddeSchema.index({ 'whichDict.dictId': 1 });
 
+// ⚠️ CRITICAL: Index for whichDict.id for anlam filtering
+maddeSchema.index({ 'whichDict.id': 1 });
+
 // Index for whichDict.anlam for maddeanlam queries
 maddeSchema.index({ 'whichDict.anlam': 'text' });
 
@@ -267,6 +270,9 @@ maddeSchema.index({ 'whichDict.tip': 1 });
 
 // Compound index for performance optimization
 maddeSchema.index({ madde: 1, 'whichDict.dictId': 1 });
+
+// Compound index for _id and whichDict.id for getKelimeByMadde queries
+maddeSchema.index({ _id: 1, 'whichDict.id': 1 });
 
 // add plugin that converts mongoose to json
 // maddeSchema.plugin(slug, { tmpl: '<%=madde%>' });

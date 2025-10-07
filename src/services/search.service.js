@@ -672,16 +672,22 @@ const getKelimeByMadde = async (options) => {
   
   const conditionalMatch = {};
 
-  if (options.searchTip && options.searchTip !== 'tumu' && options.searchTip !== 'undefined') {
+  // ⚠️ FIX: Add empty string check and use exact match instead of case-insensitive for better performance
+  if (options.searchTip && options.searchTip !== 'tumu' && options.searchTip !== 'undefined' && options.searchTip !== '') {
     conditionalMatch['whichDict.tip'] = { $in: [options.searchTip] };
+    console.log(`🔍 Adding whichDict.tip filter: ${options.searchTip}`);
   }
 
-  if (options.searchDil && options.searchDil !== 'tumu' && options.searchDil !== 'undefined') {
-    conditionalMatch['dict.lang'] = { $regex: new RegExp(`${options.searchDil}`, 'ig') };
+  if (options.searchDil && options.searchDil !== 'tumu' && options.searchDil !== 'undefined' && options.searchDil !== '') {
+    // Use exact match for better performance
+    conditionalMatch['dict.lang'] = { $regex: new RegExp(`^${options.searchDil}$`, 'i') };
+    console.log(`🔍 Adding dict.lang filter: ${options.searchDil}`);
   }
 
-  if (options.searchDict && options.searchDict !== 'tumu' && options.searchDict !== 'undefined') {
-    conditionalMatch['dict.code'] = { $regex: new RegExp(`${options.searchDict}`, 'ig') };
+  if (options.searchDict && options.searchDict !== 'tumu' && options.searchDict !== 'undefined' && options.searchDict !== '') {
+    // Use exact match for better performance
+    conditionalMatch['dict.code'] = { $regex: new RegExp(`^${options.searchDict}$`, 'i') };
+    console.log(`🔍 Adding dict.code filter: ${options.searchDict}`);
   }
 
   const aggArray = [];
@@ -731,6 +737,36 @@ const getKelimeByMadde = async (options) => {
   } else {
     const realmaddeId = options.searchId.split('-')[0] || options.searchId;
     const anlamId = options.searchId.split('-')[1] || null;
+    
+    // ⚠️ CRITICAL FIX: Validate ObjectIds before query
+    const isValidObjectId = (id) => {
+      if (!id) return false;
+      // Check if it's all zeros or invalid
+      if (id === '000000000000000000000000' || id === '0'.repeat(24)) {
+        console.log(`⚠️ [SEARCH-SERVICE] Invalid ObjectId detected (all zeros): ${id}`);
+        return false;
+      }
+      // Check if it's a valid 24-char hex string
+      if (!/^[a-fA-F0-9]{24}$/.test(id)) {
+        console.log(`⚠️ [SEARCH-SERVICE] Invalid ObjectId format: ${id}`);
+        return false;
+      }
+      return true;
+    };
+
+    if (!isValidObjectId(realmaddeId)) {
+      console.log(`❌ [SEARCH-SERVICE] Invalid madde ID: ${realmaddeId}. Returning empty result.`);
+      return {
+        data: [],
+        meta: {
+          total: 0,
+          page: options.page || 1,
+          limit: options.limit || 7,
+          totalPages: 0
+        }
+      };
+    }
+
     aggArray.push(
       {
         $match: {
@@ -757,17 +793,16 @@ const getKelimeByMadde = async (options) => {
       }
     );
 
-    if (anlamId) {
+    // ⚠️ CRITICAL FIX: Only add anlamId match if valid
+    if (anlamId && isValidObjectId(anlamId)) {
+      console.log(`🔍 Adding whichDict.id filter: ${anlamId}`);
       aggArray.push({
         $match: {
           'whichDict.id': ObjectId(anlamId),
         },
       });
-      // subaggArray.push({
-      //   $match: {
-      //     'whichDict.id': { $ne: ObjectId(anlamId) },
-      //   },
-      // });
+    } else if (anlamId) {
+      console.log(`⚠️ [SEARCH-SERVICE] Skipping invalid anlamId: ${anlamId}`);
     }
 
     aggArray.push(
@@ -784,10 +819,18 @@ const getKelimeByMadde = async (options) => {
           path: '$dict',
           preserveNullAndEmptyArrays: true,
         },
-      },
-      {
+      }
+    );
+
+    // Only add conditional match if there are actual conditions
+    if (Object.keys(conditionalMatch).length > 0) {
+      console.log(`🔍 Applying conditional filters:`, Object.keys(conditionalMatch));
+      aggArray.push({
         $match: conditionalMatch,
-      },
+      });
+    }
+
+    aggArray.push(
       {
         $addFields: {
           maddeLength: { $strLenCP: '$madde' },
@@ -804,44 +847,73 @@ const getKelimeByMadde = async (options) => {
     );
   }
   const suboptions = { sort: 'maddeLength', limit: options.limit, page: options.page || 1 };
-  const agg = Madde.aggregate(aggArray);
-  const maddeler = await Madde.aggregatePaginate(agg, options.searchType === 'random' ? '' : suboptions, (err, results) => {
-    if (err) {
-      // eslint-disable-next-line no-console
-      console.log(err);
-    } else {
+  
+  // ⚠️ FIX: Add maxTimeMS to prevent hanging queries (30 seconds timeout)
+  const agg = Madde.aggregate(aggArray).allowDiskUse(true).maxTimeMS(30000);
+  
+  try {
+    const maddeler = await Madde.aggregatePaginate(agg, options.searchType === 'random' ? '' : suboptions, (err, results) => {
+      if (err) {
+        console.error('❌ [SEARCH-SERVICE] Aggregation error:', err);
+        throw err;
+      }
       return results;
-    }
-  });
+    });
 
-  const endTime = Date.now();
-  const duration = endTime - startTime;
-  
-  console.log(`✅ [SEARCH-SERVICE] getKelimeByMadde completed`);
-  console.log(`⏱️ Duration: ${duration}ms`);
-  console.log(`📈 Result Count: ${maddeler?.data?.length || 0}`);
-  console.log(`🔎 Aggregation Pipeline:`, JSON.stringify(aggArray, null, 2));
-  
-  // Cache'e kaydet (sadece ilksorgu ve advanced için)
-  if (options.searchType === 'ilksorgu' || options.searchType === 'advanced') {
-    try {
-      const cacheService = require('./cache.service');
-      const cacheKey = cacheService.generateKey('search', {
-        searchTerm: options.searchTerm,
-        searchType: options.searchType,
-        searchFilter: options.searchFilter,
-        limit: options.limit,
-        page: options.page
-      });
-      
-      await cacheService.set(cacheKey, maddeler, 1800); // 30 dakika cache
-      console.log(`💾 [SEARCH-SERVICE] Cached result for: ${options.searchTerm}`);
-    } catch (cacheError) {
-      console.log('⚠️ [SEARCH-SERVICE] Cache save error:', cacheError.message);
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    console.log(`✅ [SEARCH-SERVICE] getKelimeByMadde completed`);
+    console.log(`⏱️ Duration: ${duration}ms`);
+    console.log(`📈 Result Count: ${maddeler?.data?.length || 0}`);
+    
+    // Log pipeline in a way that shows RegExp properly
+    const pipelineForLog = aggArray.map(stage => {
+      const stageCopy = JSON.parse(JSON.stringify(stage));
+      if (stage.$match) {
+        Object.keys(stage.$match).forEach(key => {
+          if (stage.$match[key] && stage.$match[key].$regex) {
+            stageCopy.$match[key].$regex = stage.$match[key].$regex.toString();
+          }
+        });
+      }
+      return stageCopy;
+    });
+    console.log(`🔎 Aggregation Pipeline:`, JSON.stringify(pipelineForLog, null, 2));
+    
+    // Cache'e kaydet (sadece ilksorgu ve advanced için)
+    if (options.searchType === 'ilksorgu' || options.searchType === 'advanced') {
+      try {
+        const cacheService = require('./cache.service');
+        const cacheKey = cacheService.generateKey('search', {
+          searchTerm: options.searchTerm,
+          searchType: options.searchType,
+          searchFilter: options.searchFilter,
+          limit: options.limit,
+          page: options.page
+        });
+        
+        await cacheService.set(cacheKey, maddeler, 1800); // 30 dakika cache
+        console.log(`💾 [SEARCH-SERVICE] Cached result for: ${options.searchTerm}`);
+      } catch (cacheError) {
+        console.log('⚠️ [SEARCH-SERVICE] Cache save error:', cacheError.message);
+      }
     }
+    
+    return maddeler;
+  } catch (error) {
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    console.error(`❌ [SEARCH-SERVICE] Query failed after ${duration}ms`);
+    console.error(`Error:`, error.message);
+    
+    if (error.message && error.message.includes('operation exceeded time limit')) {
+      console.error(`⏰ [SEARCH-SERVICE] Query timeout - operation took too long`);
+    }
+    
+    throw error;
   }
-  
-  return maddeler;
 };
 
 const getKelimeByMaddeExceptItself = async (options) => {
