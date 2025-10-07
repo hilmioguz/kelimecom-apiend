@@ -443,12 +443,21 @@ module.exports = {
 
     const result = await esClient.search({ index: 'maddes', body });
 
-    const docs = result.hits.hits.map((hit) => ({
-      _id: hit._id,
-      madde: hit._source.madde,
-      digeryazim: hit._source.digeryazim || [],
-      whichDict: (hit._source.whichDict && hit._source.whichDict[0]) || {},
-    }));
+    const docs = result.hits.hits.map((hit) => {
+      const selected = (hit._source.whichDict && hit._source.whichDict[0]) || {};
+      return {
+        _id: hit._id,
+        madde: hit._source.madde,
+        digeryazim: hit._source.digeryazim || [],
+        whichDict: selected,
+        dict: {
+          _id: selected.dictId || null,
+          lang: selected.lang || null,
+          code: selected.code || null,
+          name: selected.name || null,
+        },
+      };
+    });
 
     return {
       data: docs,
