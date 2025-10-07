@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM node:20-alpine
 
 RUN mkdir -p /usr/src/apiend && chown -R node:node /usr/src/apiend
 
@@ -8,7 +8,7 @@ COPY package.json yarn.lock ./
 
 USER node
 
-RUN yarn install --pure-lockfile
+RUN corepack enable && yarn install --pure-lockfile
 
 COPY --chown=node:node . .
 
