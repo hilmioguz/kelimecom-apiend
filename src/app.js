@@ -55,17 +55,17 @@ app.options('*', cors());
 app.use(passport.initialize());
 passport.use('jwt', jwtStrategy);
 
-// Rate limiting - tüm ortamlarda aktif
-app.use('/v1', apiLimiter); // Genel API rate limiting
+// Rate limiting - GEÇİCİ OLARAK KAPALI
+// app.use('/v1', apiLimiter); // Genel API rate limiting
 
 // limit repeated failed requests to auth endpoints
-if (config.env === 'production') {
-  app.use('/v1/auth', authLimiter);
-}
+// if (config.env === 'production') {
+//   app.use('/v1/auth', authLimiter);
+// }
 
-// Özel endpoint rate limiting
-app.use('/v1/generalsearch', searchLimiter);
-app.use('/v1/sitelanguage', sitelanguageLimiter);
+// Özel endpoint rate limiting - GEÇİCİ OLARAK KAPALI
+// app.use('/v1/generalsearch', searchLimiter);
+// app.use('/v1/sitelanguage', sitelanguageLimiter);
 
 // v1 api routes
 app.use('/v1', routes);

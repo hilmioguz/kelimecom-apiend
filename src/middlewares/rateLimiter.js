@@ -2,14 +2,14 @@ const rateLimit = require('express-rate-limit');
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 dakika
-  max: 20,                  // 20 istek
+  max: 1000,                // 1000 istek (ÇOK YÜKSEK - GEÇİCİ)
   skipSuccessfulRequests: true,
 });
 
-// Genel API rate limiting - GEÇİCİ OLARAK KAPATILDI
+// Genel API rate limiting - GEÇİCİ OLARAK ÇOK YÜKSEK AYARLANDI
 const apiLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,  // 1 dakika
-  max: 5000,                // 1000 istek (çok gevşek)
+  max: 100000,              // 100000 istek (GEÇİCİ - NEREDEYSE KAPALI)
   message: {
     error: 'Çok fazla istek gönderildi. Lütfen 1 dakika bekleyin.',
     retryAfter: 60
@@ -18,10 +18,10 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Arama endpoint'leri için özel rate limiting - GEÇİCİ OLARAK KAPATILDI
+// Arama endpoint'leri için özel rate limiting - GEÇİCİ OLARAK ÇOK YÜKSEK AYARLANDI
 const searchLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,  // 1 dakika
-  max: 100,                 // 100 arama isteği (çok gevşek)
+  max: 50000,               // 50000 arama isteği (GEÇİCİ - NEREDEYSE KAPALI)
   message: {
     error: 'Çok fazla arama yapıldı. Lütfen 1 dakika bekleyin.',
     retryAfter: 60
@@ -30,10 +30,10 @@ const searchLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Sitelanguage endpoint'i için özel rate limiting - GEÇİCİ OLARAK KAPATILDI
+// Sitelanguage endpoint'i için özel rate limiting - GEÇİCİ OLARAK ÇOK YÜKSEK AYARLANDI
 const sitelanguageLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,  // 1 dakika
-  max: 200,                 // 200 istek (çok gevşek)
+  max: 10000,               // 10000 istek (GEÇİCİ - NEREDEYSE KAPALI)
   message: {
     error: 'Sitelanguage endpoint\'i çok sık kullanılıyor. Lütfen 1 dakika bekleyin.',
     retryAfter: 60
