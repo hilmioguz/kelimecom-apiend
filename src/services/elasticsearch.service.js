@@ -1,6 +1,7 @@
 const { Client } = require('@elastic/elasticsearch');
 const config = require('../config/config');
 const logger = require('../config/logger');
+const { normalizeSearchTermForElasticsearch } = require('../utils/searchNormalization');
 
 // Elasticsearch client
 const esClient = new Client({
@@ -40,27 +41,32 @@ const searchMaddeIlksorgu = async (options) => {
   const must = [];
   const filter = [];
   
+  // Normalize edilmiş arama terimleri (ör: "kelam" -> ["kelam", "kelâm"])
+  const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
+  logger.info(`🔍 [ES] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+  
   // Ana arama - prefix match (hızlı!)
-  // Hem büyük hem küçük harf için arama yap
+  // Hem orijinal hem normalize edilmiş varyasyonlarla arama yap
+  const prefixQueries = normalizedTerms.map(term => ({
+    prefix: {
+      madde: {
+        value: term.toLowerCase(),
+      },
+    },
+  }));
+  
+  const keywordQueries = normalizedTerms.map(term => ({
+    prefix: {
+      'madde.keyword': {
+        value: term.toLowerCase(),
+        case_insensitive: true,
+      },
+    },
+  }));
+  
   must.push({
     bool: {
-      should: [
-        {
-          prefix: {
-            madde: {
-              value: searchTerm.toLowerCase(),
-            },
-          },
-        },
-        {
-          prefix: {
-            'madde.keyword': {
-              value: searchTerm.toLowerCase(),
-              case_insensitive: true,
-            },
-          },
-        },
-      ],
+      should: [...prefixQueries, ...keywordQueries],
       minimum_should_match: 1,
     },
   });
@@ -173,14 +179,25 @@ const searchMaddeByTerm = async (options) => {
   const must = [];
   const filter = [];
   
-  // Multi-match query (fuzzy + prefix)
-  must.push({
+  // Normalize edilmiş arama terimleri
+  const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
+  logger.info(`🔍 [ES] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+  
+  // Multi-match query (fuzzy + prefix) - her normalize edilmiş terim için
+  const multiMatchQueries = normalizedTerms.map(term => ({
     multi_match: {
-      query: searchTerm,
+      query: term,
       fields: ['madde^3', 'madde.keyword^2', 'digeryazim'],
       type: 'best_fields',
       fuzziness: 'AUTO',
       prefix_length: 2,
+    },
+  }));
+  
+  must.push({
+    bool: {
+      should: multiMatchQueries,
+      minimum_should_match: 1,
     },
   });
   
@@ -293,6 +310,16 @@ module.exports = {
       });
     }
 
+    // Normalize edilmiş arama terimleri
+    const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
+    logger.info(`🔍 [ES Exact] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+    
+    // Her normalize edilmiş terim için exact match sorguları
+    const termQueries = normalizedTerms.flatMap(term => [
+      { term: { 'madde.keyword': { value: term, case_insensitive: true } } },
+      { term: { 'digeryazim.keyword': { value: term, case_insensitive: true } } },
+    ]);
+
     const body = {
       from,
       size: limit,
@@ -301,10 +328,7 @@ module.exports = {
           must: [
             {
               bool: {
-                should: [
-                  { term: { 'madde.keyword': { value: searchTerm, case_insensitive: true } } },
-                  { term: { 'digeryazim.keyword': { value: searchTerm, case_insensitive: true } } },
-                ],
+                should: termQueries,
                 minimum_should_match: 1,
               },
             },
@@ -379,6 +403,15 @@ module.exports = {
     if (searchTip && searchTip !== 'tumu' && searchTip !== 'undefined') nestedFilters.push({ term: { 'whichDict.tip': searchTip } });
     if (searchDict && searchDict !== 'tumu' && searchDict !== 'undefined') nestedFilters.push({ term: { 'whichDict.code': searchDict } });
 
+    // Normalize edilmiş arama terimleri
+    const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
+    logger.info(`🔍 [ES Anlam] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+    
+    // Her normalize edilmiş terim için match sorguları
+    const matchQueries = normalizedTerms.map(term => ({
+      match: { 'whichDict.anlam': { query: term, operator: 'and' } },
+    }));
+
     const body = {
       from,
       size: limit,
@@ -389,7 +422,10 @@ module.exports = {
             bool: {
               must: [
                 {
-                  match: { 'whichDict.anlam': { query: searchTerm, operator: 'and' } },
+                  bool: {
+                    should: matchQueries,
+                    minimum_should_match: 1,
+                  },
                 },
               ],
               filter: nestedFilters,
@@ -447,15 +483,22 @@ module.exports = {
       filter.push({ nested: { path: 'whichDict', query: { term: { 'whichDict.code': searchDict } } } });
     }
 
+    // Normalize edilmiş arama terimleri
+    const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
+    logger.info(`🔍 [ES ExactWithDash] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+    
+    // Her normalize edilmiş terim için prefix ve match_phrase sorguları
+    const shouldQueries = normalizedTerms.flatMap(term => [
+      { prefix: { madde: term.toLowerCase() } },
+      { match_phrase: { madde: { query: term, slop: 0 } } },
+    ]);
+
     const body = {
       from,
       size: limit,
       query: {
         bool: {
-          should: [
-            { prefix: { madde: searchTerm.toLowerCase() } },
-            { match_phrase: { madde: { query: searchTerm, slop: 0 } } },
-          ],
+          should: shouldQueries,
           minimum_should_match: 1,
           filter,
         },

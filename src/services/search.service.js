@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const { Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
 const logger = require('../config/logger');
+const { normalizeSearchTerm } = require('../utils/searchNormalization');
 
 // eslint-disable-next-line no-unused-vars
 const { ObjectId } = mongoose.Types;
@@ -205,86 +206,9 @@ const rawQueryKelimeler = async (options) => {
   // eslint-disable-next-line no-console
   // ('search service-->:', options);
   // eslint-disable-next-line no-console
-  let searchTermConverted = searchTerm.toLowerCase();
-  // searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
-  searchTermConverted = searchTermConverted.replace(/â/g, '[aâ]');
-  searchTermConverted = searchTermConverted.replace(/û/g, '[uûü]');
-  searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
-  // eslint-disable-next-line no-useless-escape, prettier/prettier
-  searchTermConverted = searchTermConverted.replace(/ی/g, '[يی]');
-  searchTermConverted = searchTermConverted.replace(/ك/g, '[كکگڭ]');
-  searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآ]');
-  searchTermConverted = searchTermConverted.replace(/ت/g, '[تة]');
-
-  // searchTermConverted = searchTermConverted.replace(/'/g, "['`]");
-  // searchTermConverted = searchTermConverted.replace(/-/g, '[- ]');
-  // searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
-
-  if (!searchTermConverted.includes('[aâ]') && searchTermConverted.includes('â')) {
-    searchTermConverted = searchTermConverted.replace(/â/g, '[aâ]');
-  }
-  if (!searchTermConverted.includes('[aâ]') && searchTermConverted.includes('a')) {
-    searchTermConverted = searchTermConverted.replace(/a/g, '[aâ]');
-  }
-  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('u')) {
-    searchTermConverted = searchTermConverted.replace(/u/g, '[uûü]');
-  }
-  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('ü')) {
-    searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
-  }
-  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('û')) {
-    searchTermConverted = searchTermConverted.replace(/û/g, '[uûü]');
-  }
-  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('î')) {
-    searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
-  }
-
-  if (!searchTermConverted.includes('[uûü]') && searchTermConverted.includes('ü')) {
-    searchTermConverted = searchTermConverted.replace(/ü/g, '[uûü]');
-  }
-  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('ı')) {
-    searchTermConverted = searchTermConverted.replace(/ı/g, '[iîı]');
-  }
-  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('i')) {
-    searchTermConverted = searchTermConverted.replace(/i/g, '[iîı]');
-  }
-  if (!searchTermConverted.includes('[iîı]') && searchTermConverted.includes('î')) {
-    searchTermConverted = searchTermConverted.replace(/î/g, '[iîı]');
-  }
-  if (!searchTermConverted.includes('[يی]') && searchTermConverted.includes('ي')) {
-    searchTermConverted = searchTermConverted.replace(/ي/g, '[يی]');
-  }
-  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('ك')) {
-    searchTermConverted = searchTermConverted.replace(/ك/g, '[كکگڭ]');
-  }
-  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('ک')) {
-    searchTermConverted = searchTermConverted.replace(/ک/g, '[كکگڭ]');
-  }
-  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('گ')) {
-    searchTermConverted = searchTermConverted.replace(/گ/g, '[كکگڭ]');
-  }
-  if (!searchTermConverted.includes('[كکگڭ]') && searchTermConverted.includes('ڭ')) {
-    searchTermConverted = searchTermConverted.replace(/ڭ/g, '[كکگڭ]');
-  }
-
-  if (!searchTermConverted.includes('[اأآ]') && searchTermConverted.includes('ا')) {
-    searchTermConverted = searchTermConverted.replace(/ا/g, '[اأآ]');
-  }
-  if (!searchTermConverted.includes('[اأآ]') && searchTermConverted.includes('أ')) {
-    searchTermConverted = searchTermConverted.replace(/أ/g, '[اأآ]');
-  }
-  if (!searchTermConverted.includes('[اأآ]') && searchTermConverted.includes('آ')) {
-    searchTermConverted = searchTermConverted.replace(/آ/g, '[اأآ]');
-  }
-
-  if (!searchTermConverted.includes('[تة]') && searchTermConverted.includes('ت')) {
-    searchTermConverted = searchTermConverted.replace(/ت/g, '[تة]');
-  }
-  if (!searchTermConverted.includes('[تة]') && searchTermConverted.includes('ة')) {
-    searchTermConverted = searchTermConverted.replace(/ة/g, '[تة]');
-  }
-
-  searchTerm = searchTermConverted;
+  
+  // Normalizasyon: Türkçe ve Arapça karakterler için pattern oluştur
+  searchTerm = normalizeSearchTerm(searchTerm);
 
   if (searchType === 'exact') {
     if (['?', '*', '[', ']', '(', ')', '.'].some((char) => searchTerm.includes(char))) {
