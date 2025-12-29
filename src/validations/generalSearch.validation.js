@@ -22,6 +22,7 @@ const getRawKelimeler = {
     searchTerm: Joi.string(),
     searchType: Joi.string().optional(),
     clientIp: Joi.string().optional(),
+    isUserActive: Joi.boolean().optional(), // Kullanıcı aktifse tüm whichDict kayıtlarını getir
     searchFilter: Joi.object().keys({
       dil: Joi.string().optional(),
       tip: Joi.string().optional(),

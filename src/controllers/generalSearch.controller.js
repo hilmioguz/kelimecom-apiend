@@ -59,6 +59,7 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   options.searchFilter = req.body.searchFilter;
   options.limit = req.body.limit || 10;
   options.page = req.body.page || 1;
+  options.isUserActive = req.body.isUserActive || false; // Kullanıcı aktifse tüm whichDict kayıtlarını getir
   const payload = {};
 
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {

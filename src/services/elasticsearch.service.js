@@ -264,7 +264,7 @@ module.exports = {
    * Exact arama: madde tam eşleşme + isteğe bağlı filtreler
    */
   searchMaddeExact: async (options) => {
-    const { searchTerm, searchDil, searchTip, searchDict, limit = 10, page = 1 } = options;
+    const { searchTerm, searchDil, searchTip, searchDict, limit = 10, page = 1, isUserActive = false } = options;
     const from = (page - 1) * limit;
 
     const filter = [];
@@ -317,29 +317,52 @@ module.exports = {
 
     const result = await esClient.search({ index: 'maddes', body });
 
+    // Eğer kullanıcı aktifse (isUserActive = true), tüm whichDict kayıtlarını döndür
+    // Değilse sadece ilk kaydı döndür
     const docs = result.hits.hits.map((hit) => {
-      const selected = (hit._source.whichDict && hit._source.whichDict[0]) || {};
-      return {
-        _id: hit._id,
-        madde: hit._source.madde,
-        digeryazim: hit._source.digeryazim || [],
-        whichDict: selected,
-        dict: {
-          _id: selected.dictId || null,
-          lang: selected.lang || null,
-          code: selected.code || null,
-          name: selected.name || null,
-        },
-      };
+      if (isUserActive && hit._source.whichDict && hit._source.whichDict.length > 0) {
+        // Kullanıcı aktifse, her whichDict kaydı için ayrı bir doküman oluştur
+        return hit._source.whichDict.map((whichDictItem) => ({
+          _id: hit._id,
+          madde: hit._source.madde,
+          digeryazim: hit._source.digeryazim || [],
+          whichDict: whichDictItem,
+          dict: {
+            _id: whichDictItem.dictId || null,
+            lang: whichDictItem.lang || null,
+            code: whichDictItem.code || null,
+            name: whichDictItem.name || null,
+          },
+        }));
+      } else {
+        // Kullanıcı aktif değilse, sadece ilk kaydı döndür
+        const selected = (hit._source.whichDict && hit._source.whichDict[0]) || {};
+        return {
+          _id: hit._id,
+          madde: hit._source.madde,
+          digeryazim: hit._source.digeryazim || [],
+          whichDict: selected,
+          dict: {
+            _id: selected.dictId || null,
+            lang: selected.lang || null,
+            code: selected.code || null,
+            name: selected.name || null,
+          },
+        };
+      }
     });
 
+    // Flatten array (eğer isUserActive true ise nested array olabilir)
+    const flattenedDocs = docs.flat();
+
     return {
-      data: docs,
+      data: flattenedDocs,
       meta: {
         total: result.hits.total.value,
         page,
         limit,
         totalPages: Math.ceil(result.hits.total.value / limit),
+        hasMoreResults: isUserActive ? false : (flattenedDocs.length < result.hits.total.value),
       },
     };
   },

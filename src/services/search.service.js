@@ -142,6 +142,7 @@ const rawQueryKelimeler = async (options) => {
         searchDict: searchFilter?.sozluk,
         limit: options.limit || 10,
         page: options.page || 1,
+        isUserActive: options.isUserActive || false, // Kullanıcı aktifse tüm whichDict kayıtlarını getir
       };
       const result = await es.searchMaddeExact(esOptions);
       return result;

@@ -15,6 +15,7 @@ yarn-error.log
 .env.development
 .env.production
 .env.test
+.env.debug
 .env.development.local
 .env.production.local
 .env.test.local

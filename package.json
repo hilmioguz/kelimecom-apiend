@@ -9,6 +9,10 @@
   "scripts": {
     "start": "pm2 start ecosystem.config.json --no-daemon",
     "dev": "cross-env NODE_ENV=development DEBUG=* nodemon src/index.js",
+    "debug": "cross-env NODE_ENV=development node --inspect=0.0.0.0:9230 src/index.js",
+    "debug:brk": "cross-env NODE_ENV=development node --inspect-brk=0.0.0.0:9230 src/index.js",
+    "test:search": "node test-search-debug.js",
+    "test:search:custom": "node test-search-debug.js --search",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check **/*.js",
