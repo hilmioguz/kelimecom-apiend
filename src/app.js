@@ -85,13 +85,15 @@ const getRandomMadde = async () => {
   // eslint-disable-next-line no-console
   const randomnum = Math.floor(Math.random() * dcount);
   if (randomnum) {
-    // eslint-disable-next-line security/detect-non-literal-fs-filename
-    fs.writeFileSync(`${__dirname}/randomMadde.txt`, randomnum.toString(), { flag: 'w+' }, (err) => {
-      if (err) {
-        // eslint-disable-next-line no-console
-        console.error(err);
-      }
-    });
+    try {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
+      fs.writeFileSync(`${__dirname}/randomMadde.txt`, randomnum.toString(), { flag: 'w+' });
+    } catch (err) {
+      // Docker container'da dosya yazma izni yoksa sessizce devam et
+      // Bu dosya sadece cache için kullanılıyor, kritik değil
+      // eslint-disable-next-line no-console
+      console.warn('randomMadde.txt dosyasına yazılamadı (izin hatası):', err.message);
+    }
   }
 };
 
