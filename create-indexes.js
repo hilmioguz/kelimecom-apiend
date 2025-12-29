@@ -16,6 +16,7 @@ const logger = require('./src/config/logger');
 // Import models to trigger index creation
 const Madde = require('./src/models/madde.model');
 const Dictionaries = require('./src/models/dictionaries.model');
+const Searchstat = require('./src/models/searchstat.model');
 
 const createIndexes = async () => {
   try {
@@ -31,6 +32,10 @@ const createIndexes = async () => {
     await Dictionaries.createIndexes();
     logger.info('✅ Dictionaries indexes created successfully');
 
+    logger.info('📊 Creating indexes for Searchstat collection...');
+    await Searchstat.createIndexes();
+    logger.info('✅ Searchstat indexes created successfully');
+
     // Get index information
     logger.info('\n📋 Current Madde indexes:');
     const maddeIndexes = await Madde.collection.getIndexes();
@@ -42,6 +47,12 @@ const createIndexes = async () => {
     const dictIndexes = await Dictionaries.collection.getIndexes();
     Object.keys(dictIndexes).forEach(indexName => {
       logger.info(`  - ${indexName}: ${JSON.stringify(dictIndexes[indexName])}`);
+    });
+
+    logger.info('\n📋 Current Searchstat indexes:');
+    const searchstatIndexes = await Searchstat.collection.getIndexes();
+    Object.keys(searchstatIndexes).forEach(indexName => {
+      logger.info(`  - ${indexName}: ${JSON.stringify(searchstatIndexes[indexName])}`);
     });
 
     logger.info('\n✅ All indexes created successfully!');

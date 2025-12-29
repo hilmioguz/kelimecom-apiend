@@ -33,6 +33,7 @@ const createUser = {
     kurumId: Joi.string().custom(objectId),
     packetId: Joi.string().custom(objectId),
     assignedSet: Joi.string().optional(),
+    inst_id: Joi.string().optional(), // Geçici field - register sırasında kurum ID'si için kullanılır
   }),
 };
 

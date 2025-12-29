@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { toJSON, paginate } = require('./plugins');
 
 const searchstatSchema = new mongoose.Schema(
   {
@@ -56,6 +57,23 @@ searchstatSchema.index({
 searchstatSchema.index({ 
   createdAt: -1 
 });
+
+// userId index - kullanıcı arama geçmişi için kritik
+searchstatSchema.index({ 
+  userId: 1, 
+  createdAt: -1 
+});
+
+// userId ve searchType kombinasyonu için index
+searchstatSchema.index({ 
+  userId: 1, 
+  searchType: 1, 
+  createdAt: -1 
+});
+
+// add plugin that converts mongoose to json
+searchstatSchema.plugin(toJSON);
+searchstatSchema.plugin(paginate);
 
 const Searchstat = mongoose.model('Searchstat', searchstatSchema);
 

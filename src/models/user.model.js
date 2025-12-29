@@ -243,13 +243,40 @@ userSchema.pre('save', async function (next) {
       const kurumlar = await Kurumlar.find({});
       const kurumsalpaket = await Packets.find({ role: 'kurumsal' });
       const standartpaket = await Packets.find({ role: 'standart' });
-      const emailMatch = kurumlar.filter((kurum) => kurum.mail_suffix.includes(userdomain));
-      // eslint-disable-next-line no-console
-      // console.log('emailMatch:', emailMatch);
-      if (emailMatch && emailMatch.length) {
-        user.packetId = ObjectId(kurumsalpaket[0]._id);
-        user.kurumId = ObjectId(emailMatch[0]._id);
-      } else if (user.clientIp) {
+      
+      // Öncelik 1: inst_id kontrolü (form'dan gelen kurum ID'si)
+      if (user.inst_id) {
+        try {
+          const instIdObj = ObjectId(user.inst_id);
+          const instMatch = kurumlar.find((kurum) => {
+            const kurumId = kurum._id ? kurum._id.toString() : (kurum.id ? kurum.id.toString() : null);
+            return kurumId === user.inst_id || kurum._id.equals(instIdObj);
+          });
+          if (instMatch) {
+            user.packetId = ObjectId(kurumsalpaket[0]._id);
+            user.kurumId = ObjectId(instMatch._id);
+            // inst_id'yi temizle (artık kurumId'ye set edildi)
+            user.inst_id = undefined;
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.log('inst_id parse error:', error);
+        }
+      }
+      
+      // Öncelik 2: Email domain kontrolü (sadece inst_id yoksa)
+      if (!user.kurumId) {
+        const emailMatch = kurumlar.filter((kurum) => kurum.mail_suffix.includes(userdomain));
+        // eslint-disable-next-line no-console
+        // console.log('emailMatch:', emailMatch);
+        if (emailMatch && emailMatch.length) {
+          user.packetId = ObjectId(kurumsalpaket[0]._id);
+          user.kurumId = ObjectId(emailMatch[0]._id);
+        }
+      }
+      
+      // Öncelik 3: IP kontrolü (sadece inst_id ve email match yoksa)
+      if (!user.kurumId && user.clientIp) {
         const ip = storeIP(user.clientIp);
         if (isV4(ip)) {
           const ipMatch = kurumlar.filter((kurum) => inRange(ip, kurum.cidr));
@@ -260,7 +287,10 @@ userSchema.pre('save', async function (next) {
             user.kurumId = ObjectId(ipMatch[0]._id);
           }
         }
-      } else {
+      }
+      
+      // Eğer hiçbir kurum bulunamadıysa standart paket
+      if (!user.kurumId) {
         user.packetId = ObjectId(standartpaket[0]._id);
       }
     } catch (error) {
