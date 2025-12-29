@@ -65,11 +65,14 @@ const getRawKelimeler = catchAsync(async (req, res) => {
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
     payload.searchTerm = decodeURIComponent(req.body.searchTerm);
     payload.searchType = options.searchType;
-    payload.searchedBy = req.params.clientIp || '';
+    // IP adresini al: önce req.clientIp, sonra req.params.clientIp, sonra req.ip, en son headers'dan
+    payload.clientIp = req.clientIp || req.params.clientIp || req.ip || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.headers['x-real-ip'] || '';
     payload.secilenDil = options.searchFilter.dil;
     payload.secilenTip = options.searchFilter.tip;
-    payload.userId = req.user && req.user.id ? req.user.id : null;
-    payload.kurumId = req.user.kurumId && req.user.kurumId.id ? req.user.kurumId : null;
+    // userId: req.user varsa id'sini al (mongoose'da hem _id hem id çalışır)
+    payload.userId = req.user && (req.user.id || req.user._id) ? (req.user.id || req.user._id) : null;
+    // kurumId: req.user.kurumId varsa al (ObjectId veya populate edilmiş object olabilir)
+    payload.kurumId = req.user && req.user.kurumId ? (req.user.kurumId._id || req.user.kurumId) : null;
   }
 
   const result = await searchService.rawQueryKelimeler(options);
@@ -114,12 +117,15 @@ const getKelimeByMadde = catchAsync(async (req, res) => {
   if (options.searchType !== 'exactwithdash' && options.searchType !== 'maddeanlam') {
     payload.searchTerm = decodeURIComponent(req.params.madde);
     payload.searchType = options.searchType;
-    payload.searchedBy = req.params.clientIp || '';
+    // IP adresini al: önce req.clientIp, sonra req.params.clientIp, sonra req.ip, en son headers'dan
+    payload.clientIp = req.clientIp || req.params.clientIp || req.ip || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.headers['x-real-ip'] || '';
     payload.secilenDil = dil;
     payload.secilenTip = tip;
     payload.secilenSozluk = sozluk;
-    payload.userId = req.user && req.user.id ? req.user.id : null;
-    payload.kurumId = req.user.kurumId && req.user.kurumId.id ? req.user.kurumId : null;
+    // userId: req.user varsa id'sini al (mongoose'da hem _id hem id çalışır)
+    payload.userId = req.user && (req.user.id || req.user._id) ? (req.user.id || req.user._id) : null;
+    // kurumId: req.user.kurumId varsa al (ObjectId veya populate edilmiş object olabilir)
+    payload.kurumId = req.user && req.user.kurumId ? (req.user.kurumId._id || req.user.kurumId) : null;
   }
 
   if (req.user) {

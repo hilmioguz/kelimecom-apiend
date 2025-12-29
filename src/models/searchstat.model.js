@@ -24,6 +24,10 @@ const searchstatSchema = new mongoose.Schema(
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'User',
     },
+    kurumId: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'Kurumlar',
+    },
   },
   {
     timestamps: true,
