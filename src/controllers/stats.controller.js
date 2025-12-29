@@ -41,7 +41,30 @@ const allStats = catchAsync(async (req, res) => {
   res.status(httpStatus.CREATED).send(stat);
 });
 
+const getUserSearchHistory = catchAsync(async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  if (!userId) {
+    return res.status(httpStatus.UNAUTHORIZED).send({ message: 'Kullanıcı giriş yapmamış' });
+  }
+
+  const pick = require('../utils/pick');
+  const filter = { userId };
+  // Sadece ilksorgu ve advanced aramaları göster (exactwithdash ve maddeanlam hariç)
+  filter.searchType = { $in: ['ilksorgu', 'advanced', 'exact'] };
+  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  if (!options.sortBy) {
+    options.sortBy = 'createdAt:desc';
+  }
+  if (!options.limit) {
+    options.limit = 50;
+  }
+
+  const result = await searchstatService.querySearchstat(filter, options);
+  res.status(httpStatus.OK).send(result);
+});
+
 module.exports = {
   getStats,
   allStats,
+  getUserSearchHistory,
 };
