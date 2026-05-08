@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const { Madde } = require('../models');
 const ApiError = require('../utils/ApiError');
 const logger = require('../config/logger');
+const config = require('../config/config');
 const { normalizeSearchTerm } = require('../utils/searchNormalization');
 
 // eslint-disable-next-line no-unused-vars
@@ -117,6 +118,8 @@ const rawQueryKelimeler = async (options) => {
         filterOrders: searchFilter?.filterOrders,
         limit: options.limit || 7,
         page: options.page || 1,
+        ilksorguAnlamFallbackEnabled: config.elasticsearch.ilksorguAnlamFallbackEnabled,
+        ilksorguAnlamThreshold: config.elasticsearch.ilksorguAnlamThreshold,
       };
       
       logger.info(`🚀 [SEARCH] Using Elasticsearch for ilksorgu: "${esOptions.searchTerm}"`);

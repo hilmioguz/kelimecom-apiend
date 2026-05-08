@@ -31,31 +31,46 @@ const searchMaddeIlksorgu = async (options) => {
     filterOrders,
     limit = 7,
     page = 1,
+    ilksorguAnlamFallbackEnabled = false,
+    ilksorguAnlamThreshold = 5,
   } = options;
   
   logger.info(`🔍 [ES] İlksorgu başlatıldı: "${searchTerm}"`);
   
   const from = (page - 1) * limit;
   
-  // Build query
-  const must = [];
-  const filter = [];
-  
+  const isValidFilterValue = (value) => value && value !== 'tumu' && value !== 'undefined';
+
+  const formatHitsToDocs = (hits) =>
+    hits.map((hit) => {
+      const firstDict = hit._source.whichDict?.[0] || {};
+      return {
+        _id: hit._id,
+        madde: hit._source.madde,
+        digeryazim: hit._source.digeryazim || [],
+        whichDict: hit._source.whichDict || [],
+        anlam: hit._source.anlam || '',
+        maddeId: hit._id,
+        lang: firstDict.lang || 'tr',
+        tip: firstDict.tip?.[0] || '',
+        maddeLength: hit._source.madde?.length || 0,
+      };
+    });
+
   // Normalize edilmiş arama terimleri (ör: "kelam" -> ["kelam", "kelâm"])
   const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
   logger.info(`🔍 [ES] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
-  
+
   // Ana arama - prefix match (hızlı!)
-  // Hem orijinal hem normalize edilmiş varyasyonlarla arama yap
-  const prefixQueries = normalizedTerms.map(term => ({
+  const prefixQueries = normalizedTerms.map((term) => ({
     prefix: {
       madde: {
         value: term.toLowerCase(),
       },
     },
   }));
-  
-  const keywordQueries = normalizedTerms.map(term => ({
+
+  const keywordQueries = normalizedTerms.map((term) => ({
     prefix: {
       'madde.keyword': {
         value: term.toLowerCase(),
@@ -63,46 +78,54 @@ const searchMaddeIlksorgu = async (options) => {
       },
     },
   }));
-  
-  must.push({
-    bool: {
-      should: [...prefixQueries, ...keywordQueries],
-      minimum_should_match: 1,
+
+  const prefixMust = [
+    {
+      bool: {
+        should: [...prefixQueries, ...keywordQueries],
+        minimum_should_match: 1,
+      },
     },
-  });
-  
-  // NOT: Filtreleri şimdilik devre dışı bırakıyoruz
-  // İlk aşamada sadece hız testi yapıyoruz
-  // Daha sonra nested query'leri düzgün ekleyeceğiz
-  
-  // // Dil filtresi
-  // if (searchDil && searchDil !== 'tumu' && searchDil !== 'undefined') {
-  //   filter.push({
-  //     nested: {
-  //       path: 'whichDict',
-  //       query: {
-  //         term: { 'whichDict.lang': searchDil },
-  //       },
-  //     },
-  //   });
-  // }
-  
-  logger.info(`🔍 [ES] Filters disabled for initial testing`);
-  
-  // Dil sıralama önceliği
-  const langOrder = (filterOrders || 'en,os,fa,tr,ar,fr').split(',');
-  
+  ];
+
+  const nestedFilters = [];
+  if (isValidFilterValue(searchDil)) nestedFilters.push({ term: { 'whichDict.lang': searchDil } });
+  if (isValidFilterValue(searchTip)) nestedFilters.push({ term: { 'whichDict.tip': searchTip } });
+  if (isValidFilterValue(searchDict)) nestedFilters.push({ term: { 'whichDict.code': searchDict } });
+
+  const meaningQueries = normalizedTerms.flatMap((term) => ([
+    {
+      match_phrase: {
+        'whichDict.anlam': {
+          query: term,
+          boost: 5,
+        },
+      },
+    },
+    {
+      match: {
+        'whichDict.anlam': {
+          query: term,
+          operator: 'and',
+          boost: 1,
+        },
+      },
+    },
+  ]));
+
+  const shouldRunMeaningFallback =
+    ilksorguAnlamFallbackEnabled && searchTerm && searchTerm.trim().length > 1;
+
   // Elasticsearch sorgusu
   try {
-    const result = await esClient.search({
+    const prefixResult = await esClient.search({
       index: 'maddes',
       body: {
         from,
         size: limit,
         query: {
           bool: {
-            must,
-            filter,
+            must: prefixMust,
           },
         },
         sort: [
@@ -111,44 +134,84 @@ const searchMaddeIlksorgu = async (options) => {
         _source: ['madde', 'digeryazim', 'whichDict', 'anlam', 'createdAt', 'updatedAt'],
       },
     });
-    
+
+    const prefixHits = prefixResult.hits.hits || [];
+    const prefixTotal = prefixResult.hits.total.value;
+    let mergedHits = [...prefixHits];
+    let mergedTotal = prefixTotal;
+
+    const shouldFallbackByThreshold = prefixHits.length < ilksorguAnlamThreshold;
+
+    if (shouldRunMeaningFallback && shouldFallbackByThreshold) {
+      logger.info(
+        `🔁 [ES] İlksorgu anlam fallback tetiklendi (prefix hits: ${prefixHits.length}, threshold: ${ilksorguAnlamThreshold})`
+      );
+
+      const fallbackCandidateSize = Math.max(limit * 5, 50);
+      const meaningResult = await esClient.search({
+        index: 'maddes',
+        body: {
+          from: 0,
+          size: fallbackCandidateSize,
+          query: {
+            nested: {
+              path: 'whichDict',
+              query: {
+                bool: {
+                  must: [
+                    {
+                      bool: {
+                        should: meaningQueries,
+                        minimum_should_match: 1,
+                      },
+                    },
+                  ],
+                  filter: nestedFilters,
+                },
+              },
+              inner_hits: { size: 1 },
+              score_mode: 'max',
+            },
+          },
+          sort: [{ _score: 'desc' }, { 'madde.keyword': 'asc' }],
+          _source: ['madde', 'digeryazim', 'whichDict', 'anlam', 'createdAt', 'updatedAt'],
+        },
+      });
+
+      const mergedById = new Map();
+      prefixHits.forEach((hit) => mergedById.set(hit._id, hit));
+      meaningResult.hits.hits.forEach((hit) => {
+        if (!mergedById.has(hit._id)) {
+          mergedById.set(hit._id, hit);
+        }
+      });
+
+      // Sıralamayı koru: önce prefix hit'leri, sonra ES score ile gelen fallback hit'leri.
+      mergedHits = Array.from(mergedById.values());
+      mergedHits = mergedHits.slice(0, limit);
+      mergedTotal = Math.max(prefixTotal, meaningResult.hits.total.value);
+    }
+
+    const docs = formatHitsToDocs(mergedHits);
     const duration = Date.now() - startTime;
-    
+
     logger.info(`✅ [ES] İlksorgu tamamlandı`);
     logger.info(`⏱️  [ES] Süre: ${duration}ms`);
-    logger.info(`📈 [ES] Sonuç: ${result.hits.hits.length} / ${result.hits.total.value}`);
-    
-    // MongoDB formatına dönüştür
-    const docs = result.hits.hits.map((hit) => {
-      const firstDict = hit._source.whichDict?.[0] || {};
-      
-      return {
-        _id: hit._id,
-        madde: hit._source.madde,
-        digeryazim: hit._source.digeryazim || [],
-        whichDict: hit._source.whichDict || [],
-        anlam: hit._source.anlam || '',
-        maddeId: hit._id,
-        // Dil sıralama önceliğine göre ilk sözlüğü bul
-        lang: firstDict.lang || 'tr',
-        tip: firstDict.tip?.[0] || '',
-        maddeLength: hit._source.madde?.length || 0,
-      };
-    });
-    
+    logger.info(`📈 [ES] Sonuç: ${docs.length} / ${mergedTotal}`);
+
     // Frontend'in beklediği format: { data, meta }
     return {
       data: docs,
       meta: {
-        total: result.hits.total.value,
+        total: mergedTotal,
         page,
         limit,
-        totalPages: Math.ceil(result.hits.total.value / limit),
+        totalPages: Math.ceil(mergedTotal / limit),
         pagingCounter: from + 1,
         hasPrevPage: page > 1,
-        hasNextPage: from + limit < result.hits.total.value,
+        hasNextPage: from + limit < mergedTotal,
         prevPage: page > 1 ? page - 1 : null,
-        nextPage: from + limit < result.hits.total.value ? page + 1 : null,
+        nextPage: from + limit < mergedTotal ? page + 1 : null,
       }
     };
   } catch (error) {

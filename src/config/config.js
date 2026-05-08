@@ -12,6 +12,8 @@ const envVarsSchema = Joi.object()
     ELASTICSEARCH_URL: Joi.string().default('http://localhost:9200').description('Elasticsearch URL'),
     ELASTICSEARCH_USER: Joi.string().optional().description('Elasticsearch username'),
     ELASTICSEARCH_PASSWORD: Joi.string().optional().description('Elasticsearch password'),
+    ES_ILKSORGU_ANLAM_FALLBACK_ENABLED: Joi.boolean().default(false),
+    ES_ILKSORGU_ANLAM_THRESHOLD: Joi.number().integer().min(1).default(5),
     JWT_SECRET: Joi.string().required().description('JWT secret key'),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number().default(30).description('minutes after which access tokens expire'),
     JWT_REFRESH_EXPIRATION_DAYS: Joi.number().default(30).description('days after which refresh tokens expire'),
@@ -64,6 +66,8 @@ module.exports = {
           password: envVars.ELASTICSEARCH_PASSWORD,
         }
       : undefined,
+    ilksorguAnlamFallbackEnabled: envVars.ES_ILKSORGU_ANLAM_FALLBACK_ENABLED,
+    ilksorguAnlamThreshold: envVars.ES_ILKSORGU_ANLAM_THRESHOLD,
   },
   jwt: {
     secret: envVars.JWT_SECRET,
