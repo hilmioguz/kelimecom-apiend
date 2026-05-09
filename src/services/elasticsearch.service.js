@@ -477,9 +477,20 @@ module.exports = {
     logger.info(`🔍 [ES Anlam] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
     
     // Her normalize edilmiş terim için match sorguları
-    const matchQueries = normalizedTerms.map(term => ({
-      match: { 'whichDict.anlam': { query: term, operator: 'and' } },
-    }));
+    const matchQueries = normalizedTerms.flatMap(term => ([
+      {
+        constant_score: {
+          filter: { match_phrase: { 'whichDict.anlam': term } },
+          boost: 10
+        }
+      },
+      {
+        constant_score: {
+          filter: { match: { 'whichDict.anlam': { query: term, operator: 'and' } } },
+          boost: 2
+        }
+      }
+    ]));
 
     const body = {
       from,
