@@ -515,6 +515,7 @@ module.exports = {
         },
       },
       _source: ['madde', 'digeryazim', 'whichDict', 'createdAt', 'updatedAt'],
+      sort: [{ _score: 'desc' }, { 'madde.keyword': 'asc' }],
     };
 
     const result = await esClient.search({ index: 'maddes', body });
