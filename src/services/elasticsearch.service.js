@@ -95,26 +95,20 @@ const searchMaddeIlksorgu = async (options) => {
 
   const meaningQueries = normalizedTerms.flatMap((term) => ([
     {
-      constant_score: {
-        filter: {
-          match_phrase: {
-            'whichDict.anlam': term,
-          },
+      match_phrase: {
+        'whichDict.anlam': {
+          query: term,
+          boost: 5,
         },
-        boost: 10,
       },
     },
     {
-      constant_score: {
-        filter: {
-          match: {
-            'whichDict.anlam': {
-              query: term,
-              operator: 'and',
-            },
-          },
+      match: {
+        'whichDict.anlam': {
+          query: term,
+          operator: 'and',
+          boost: 1,
         },
-        boost: 2,
       },
     },
   ]));
@@ -198,7 +192,26 @@ const searchMaddeIlksorgu = async (options) => {
       mergedTotal = Math.max(prefixTotal, meaningResult.hits.total.value);
     }
 
-    const docs = formatHitsToDocs(mergedHits);
+    let docs = formatHitsToDocs(mergedHits);
+
+    // --- PATRON İSTEĞİ: Niğde Torpili (İlksorgu) ---
+    const lowerTerm = searchTerm.toLowerCase();
+    if (lowerTerm === 'niğde' || lowerTerm === 'niğde' || lowerTerm === 'نيغدة') {
+      const isAlreadyIn = docs.some(x => x.madde === 'Nekîdâ');
+      if (!isAlreadyIn) {
+        const nekidaRes = await esClient.search({
+          index: 'maddes',
+          body: { query: { term: { 'madde.keyword': 'Nekîdâ' } }, size: 1 }
+        });
+        if (nekidaRes.hits.hits.length > 0) {
+          const nekidaDoc = formatHitsToDocs(nekidaRes.hits.hits)[0];
+          docs.splice(3, 0, nekidaDoc); // 4. sıra
+          if (docs.length > limit) docs.pop();
+        }
+      }
+    }
+    // ----------------------------------------------
+
     const duration = Date.now() - startTime;
 
     logger.info(`✅ [ES] İlksorgu tamamlandı`);
@@ -477,20 +490,9 @@ module.exports = {
     logger.info(`🔍 [ES Anlam] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
     
     // Her normalize edilmiş terim için match sorguları
-    const matchQueries = normalizedTerms.flatMap(term => ([
-      {
-        constant_score: {
-          filter: { match_phrase: { 'whichDict.anlam': term } },
-          boost: 10
-        }
-      },
-      {
-        constant_score: {
-          filter: { match: { 'whichDict.anlam': { query: term, operator: 'and' } } },
-          boost: 2
-        }
-      }
-    ]));
+    const matchQueries = normalizedTerms.map(term => ({
+      match: { 'whichDict.anlam': { query: term, operator: 'and' } },
+    }));
 
     const body = {
       from,
@@ -515,7 +517,6 @@ module.exports = {
         },
       },
       _source: ['madde', 'digeryazim', 'whichDict', 'createdAt', 'updatedAt'],
-      sort: [{ _score: 'desc' }, { 'madde.keyword': 'asc' }],
     };
 
     const result = await esClient.search({ index: 'maddes', body });
@@ -535,6 +536,37 @@ module.exports = {
         },
       };
     });
+
+    // --- PATRON İSTEĞİ: Niğde Torpili ---
+    const lowerTerm = searchTerm.toLowerCase();
+    if (lowerTerm === 'niğde' || lowerTerm === 'niğde' || lowerTerm === 'نيغدة') {
+      const isAlreadyIn = docs.some(x => x.madde === 'Nekîdâ');
+      if (!isAlreadyIn) {
+        const nekidaRes = await esClient.search({
+          index: 'maddes',
+          body: { query: { term: { 'madde.keyword': 'Nekîdâ' } }, size: 1 }
+        });
+        if (nekidaRes.hits.hits.length > 0) {
+          const hit = nekidaRes.hits.hits[0];
+          const selected = (hit._source.whichDict && hit._source.whichDict[0]) || {};
+          const nekida = {
+            _id: hit._id,
+            madde: hit._source.madde,
+            whichDict: selected,
+            dict: {
+              _id: selected.dictId || null,
+              lang: selected.lang || null,
+              code: selected.code || null,
+              name: selected.name || null,
+            },
+            _score: 9999,
+          };
+          docs.splice(3, 0, nekida); // 4. sıra
+          if (docs.length > limit) docs.pop();
+        }
+      }
+    }
+    // ------------------------------------
 
     return {
       data: docs,
