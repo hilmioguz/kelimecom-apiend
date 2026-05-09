@@ -95,20 +95,26 @@ const searchMaddeIlksorgu = async (options) => {
 
   const meaningQueries = normalizedTerms.flatMap((term) => ([
     {
-      match_phrase: {
-        'whichDict.anlam': {
-          query: term,
-          boost: 5,
+      constant_score: {
+        filter: {
+          match_phrase: {
+            'whichDict.anlam': term,
+          },
         },
+        boost: 10,
       },
     },
     {
-      match: {
-        'whichDict.anlam': {
-          query: term,
-          operator: 'and',
-          boost: 1,
+      constant_score: {
+        filter: {
+          match: {
+            'whichDict.anlam': {
+              query: term,
+              operator: 'and',
+            },
+          },
         },
+        boost: 2,
       },
     },
   ]));
