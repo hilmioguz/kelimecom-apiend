@@ -1,3 +1,5 @@
+const { translateToOttoman } = require('../services/ottomanTranslate.service');
+
 /**
  * Arama terimlerini normalize eder
  * Türkçe karakterler (â, î, û) ve Arapça karakterler için normalizasyon yapar
@@ -163,7 +165,28 @@ const normalizeSearchTermForElasticsearch = (searchTerm) => {
   return Array.from(terms);
 };
 
+/**
+ * Elasticsearch için arama terimlerini normalize eder ve Osmanlıca çevirilerini ekler
+ * @param {string} searchTerm - Arama terimi
+ * @returns {Promise<Array<string>>} - Genişletilmiş arama terimleri array'i
+ */
+const getExpandedSearchTerms = async (searchTerm) => {
+  const terms = normalizeSearchTermForElasticsearch(searchTerm);
+  
+  try {
+    const ottomanTerm = await translateToOttoman(searchTerm);
+    if (ottomanTerm && !terms.includes(ottomanTerm)) {
+      terms.push(ottomanTerm);
+    }
+  } catch (error) {
+    // Çeviri servisinde hata olursa mevcut terimlerle devam et
+  }
+  
+  return terms;
+};
+
 module.exports = {
   normalizeSearchTerm,
   normalizeSearchTermForElasticsearch,
+  getExpandedSearchTerms,
 };

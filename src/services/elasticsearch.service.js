@@ -1,7 +1,7 @@
 const { Client } = require('@elastic/elasticsearch');
 const config = require('../config/config');
 const logger = require('../config/logger');
-const { normalizeSearchTermForElasticsearch } = require('../utils/searchNormalization');
+const { getExpandedSearchTerms } = require('../utils/searchNormalization');
 
 // Elasticsearch client
 const esClient = new Client({
@@ -57,9 +57,8 @@ const searchMaddeIlksorgu = async (options) => {
       };
     });
 
-  // Normalize edilmiş arama terimleri (ör: "kelam" -> ["kelam", "kelâm"])
-  const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
-  logger.info(`🔍 [ES] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+  // Normalize edilmiş ve Osmanlıcaya çevrilmiş arama terimleri (ör: "kalem" -> ["kalem", "قلم"])
+  const normalizedTerms = await getExpandedSearchTerms(searchTerm);
 
   // Ana arama - prefix match (hızlı!)
   const prefixQueries = normalizedTerms.map((term) => ({
@@ -261,9 +260,8 @@ const searchMaddeByTerm = async (options) => {
   const must = [];
   const filter = [];
   
-  // Normalize edilmiş arama terimleri
-  const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
-  logger.info(`🔍 [ES] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+  // Normalize edilmiş ve Osmanlıcaya çevrilmiş arama terimleri
+  const normalizedTerms = await getExpandedSearchTerms(searchTerm);
   
   // Multi-match query (fuzzy + prefix) - her normalize edilmiş terim için
   const multiMatchQueries = normalizedTerms.map(term => ({
@@ -392,9 +390,8 @@ module.exports = {
       });
     }
 
-    // Normalize edilmiş arama terimleri
-    const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
-    logger.info(`🔍 [ES Exact] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+    // Normalize edilmiş ve Osmanlıcaya çevrilmiş arama terimleri
+    const normalizedTerms = await getExpandedSearchTerms(searchTerm);
     
     // Her normalize edilmiş terim için exact match sorguları
     const termQueries = normalizedTerms.flatMap(term => [
@@ -485,9 +482,8 @@ module.exports = {
     if (searchTip && searchTip !== 'tumu' && searchTip !== 'undefined') nestedFilters.push({ term: { 'whichDict.tip': searchTip } });
     if (searchDict && searchDict !== 'tumu' && searchDict !== 'undefined') nestedFilters.push({ term: { 'whichDict.code': searchDict } });
 
-    // Normalize edilmiş arama terimleri
-    const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
-    logger.info(`🔍 [ES Anlam] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+    // Normalize edilmiş ve Osmanlıcaya çevrilmiş arama terimleri
+    const normalizedTerms = await getExpandedSearchTerms(searchTerm);
     
     // Her normalize edilmiş terim için match sorguları
     const matchQueries = normalizedTerms.map(term => ({
@@ -596,9 +592,8 @@ module.exports = {
       filter.push({ nested: { path: 'whichDict', query: { term: { 'whichDict.code': searchDict } } } });
     }
 
-    // Normalize edilmiş arama terimleri
-    const normalizedTerms = normalizeSearchTermForElasticsearch(searchTerm);
-    logger.info(`🔍 [ES ExactWithDash] Normalize edilmiş terimler: ${JSON.stringify(normalizedTerms)}`);
+    // Normalize edilmiş ve Osmanlıcaya çevrilmiş arama terimleri
+    const normalizedTerms = await getExpandedSearchTerms(searchTerm);
     
     // Her normalize edilmiş terim için prefix ve match_phrase sorguları
     const shouldQueries = normalizedTerms.flatMap(term => [
