@@ -8,7 +8,7 @@ const register = {
     password2: Joi.string().required().custom(password),
     name: Joi.string().required(),
     clientIp: Joi.string().optional(),
-    inst_id: Joi.string().optional(),
+    inst_id: Joi.string().allow('').optional(),
   }),
 };
 
