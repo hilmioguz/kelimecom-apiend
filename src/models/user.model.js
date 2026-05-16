@@ -243,6 +243,7 @@ userSchema.pre('save', async function (next) {
       const kurumlar = await Kurumlar.find({});
       const kurumsalpaket = await Packets.find({ role: 'kurumsal' });
       const standartpaket = await Packets.find({ role: 'standart' });
+      const now = new Date();
       
       // Öncelik 1: inst_id kontrolü (form'dan gelen kurum ID'si)
       if (user.inst_id) {
@@ -252,7 +253,7 @@ userSchema.pre('save', async function (next) {
             const kurumId = kurum._id ? kurum._id.toString() : (kurum.id ? kurum.id.toString() : null);
             return kurumId === user.inst_id || kurum._id.equals(instIdObj);
           });
-          if (instMatch) {
+          if (instMatch && instMatch.isActive === true && new Date(instMatch.endDate) > now) {
             user.packetId = ObjectId(kurumsalpaket[0]._id);
             user.kurumId = ObjectId(instMatch._id);
             // inst_id'yi temizle (artık kurumId'ye set edildi)
@@ -266,7 +267,12 @@ userSchema.pre('save', async function (next) {
       
       // Öncelik 2: Email domain kontrolü (sadece inst_id yoksa)
       if (!user.kurumId) {
-        const emailMatch = kurumlar.filter((kurum) => kurum.mail_suffix.includes(userdomain));
+        const emailMatch = kurumlar.filter((kurum) => 
+          kurum.mail_suffix && 
+          kurum.mail_suffix.includes(userdomain) &&
+          kurum.isActive === true &&
+          new Date(kurum.endDate) > now
+        );
         // eslint-disable-next-line no-console
         // console.log('emailMatch:', emailMatch);
         if (emailMatch && emailMatch.length) {
@@ -279,7 +285,12 @@ userSchema.pre('save', async function (next) {
       if (!user.kurumId && user.clientIp) {
         const ip = storeIP(user.clientIp);
         if (isV4(ip)) {
-          const ipMatch = kurumlar.filter((kurum) => inRange(ip, kurum.cidr));
+          const ipMatch = kurumlar.filter((kurum) => 
+            kurum.cidr && 
+            inRange(ip, kurum.cidr) &&
+            kurum.isActive === true &&
+            new Date(kurum.endDate) > now
+          );
           // eslint-disable-next-line no-console
           // console.log('imatch:', ipMatch);
           if (ipMatch && ipMatch.length) {
