@@ -1,11 +1,8 @@
 const logger = require('../config/logger');
-// const axios = require('axios'); // Harici API kullanılacağı zaman açılacak
-// const redisClient = require('../config/redis'); // Redis eklenecekse
+const axios = require('axios'); // Harici API eklendi
 
 /**
- * Türkçe kelimenin Osmanlıca (Arap harfli) karşılığını bulur.
- * Şu an için örnek bir sözlük (mock) ve API altyapısı kurulmuştur.
- * Harici bir çeviri API'si entegre edildiğinde burası güncellenecektir.
+ * Türkçe kelimenin Osmanlıca (Arap harfli) karşılığını Wikilala API ile bulur.
  * 
  * @param {string} term - Çevrilecek Türkçe kelime
  * @returns {Promise<string|null>} - Osmanlıca karşılığı veya bulunamazsa null
@@ -16,41 +13,22 @@ const translateToOttoman = async (term) => {
   const lowerTerm = term.trim().toLowerCase();
   if (lowerTerm.length < 2) return null;
 
-  // TODO: Redis Cache Kontrolü Buraya Eklenecek
-  // const cachedTerm = await redisClient.get(`osmanlica:${lowerTerm}`);
-  // if (cachedTerm) return cachedTerm;
-
   try {
-    // Geçici Mock Sözlük (En çok aranan kelimeler veya test kelimeleri)
-    const mockDictionary = {
-      'kalem': 'قلم',
-      'kitap': 'كتاب',
-      'defter': 'دفتر',
-      'su': 'صو',
-      'gül': 'گل',
-      'niğde': 'نيغدة'
-    };
+    // Patronun gönderdiği Wikilala servisine istek atıyoruz
+    // Not: Resimde Keywords alanı "{kelime}" şeklinde gösterildiği için süslü parantez ile gönderip, dönen cevaptan temizliyoruz.
+    const response = await axios.post('http://api.wikilala.com/translate/latintoottomanv2', {
+      Keywords: `{${lowerTerm}}`
+    });
 
-    let ottomanEquivalent = mockDictionary[lowerTerm] || null;
-
-    // TODO: Harici Çeviri API İsteği (API hazır olduğunda açılacak)
-    /*
-    if (!ottomanEquivalent) {
-      const response = await axios.get(`https://api.example.com/translate?text=${encodeURIComponent(lowerTerm)}&to=os`);
-      if (response.data && response.data.translated) {
-        ottomanEquivalent = response.data.translated;
-      }
+    if (response.data && response.data.translate) {
+      // API'den gelen "{مرحبا دنيا}" tarzı cevaptaki süslü parantezleri temizle
+      let ottomanEquivalent = response.data.translate.replace(/[{}]/g, '').trim();
+      return ottomanEquivalent || null;
     }
-    */
 
-    // TODO: Bulunan sonucu Redis'e kaydet (1 haftalık cache)
-    // if (ottomanEquivalent) {
-    //   await redisClient.setex(`osmanlica:${lowerTerm}`, 604800, ottomanEquivalent);
-    // }
-
-    return ottomanEquivalent;
+    return null;
   } catch (error) {
-    logger.error(`[Ottoman Translate] Çeviri hatası (${term}): ${error.message}`);
+    logger.error(`[Ottoman Translate] Wikilala API hatası (${term}): ${error.message}`);
     return null; // Çökmeyi önlemek için null dönüyoruz
   }
 };
